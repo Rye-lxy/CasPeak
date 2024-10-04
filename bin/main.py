@@ -23,7 +23,7 @@ def preAssembler(up, down):
             yield "{}\n{}\n".format(title, seq)
 
 
-def main(args: argparse.Namespace):
+def main(args):
     insertName, insertSeq = next(fastaReader(openFile(args.insert_seq)))
 
     insertAlignments = dict((name, list(alns)) for name, alns in itertools.groupby(mafReader(openFile(args.insert_maf)), key=attrgetter("queryName")))
