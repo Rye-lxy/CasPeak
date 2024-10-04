@@ -1,0 +1,50 @@
+#! /usr/bin/env python3
+
+import itertools
+from operator import attrgetter
+from Alignment import Alignment
+
+IGNORED_CHR = set(["chrM", "chrEBV"])
+
+def joinAll(alignments):
+    # pick the most representative alignment for one read
+    # that indicate the location of insertion
+    alns = sorted(list(alignments), key = attrgetter("queryStrand", "refName", "refStart"))
+    joinedAlns = []
+    for aln in alns:
+        if not joinedAlns:
+            joinedAlns.append(aln)
+            continue
+
+        prevAln = joinedAlns[-1]
+        tmpAln = prevAln.join(aln, refGap = 200, queryGap = 1000)
+        if tmpAln:
+            joinedAlns[-1] = tmpAln
+        else:
+            joinedAlns.append(aln)
+    return joinedAlns
+
+def genomeAlignmentFilter(genomeMafReader):
+    # filter for the read alignment to hg38
+    for read, alns in itertools.groupby(genomeMafReader, key=attrgetter("queryName", "queryLength")):
+        name, length = read
+        if length < 500:
+            continue
+        
+        joinedAlns = joinAll(alns)
+        joinedAlns = [aln for aln in joinedAlns if aln.refName not in IGNORED_CHR]
+        if len(joinedAlns) < 2:
+            continue
+
+        maxAln = max(joinedAlns, key = lambda x: x.getRefLength())
+        maxRefLength = maxAln.getRefLength()
+        if maxRefLength / length >= 0.99 or maxRefLength / length < 0.4:
+            continue
+        if length - maxRefLength < 100:
+            continue
+        
+        maxAln.shrink(toLength=200)
+        yield name, maxAln
+
+
+    
