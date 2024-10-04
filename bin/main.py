@@ -51,7 +51,7 @@ def main(args):
     peaks = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" for name, start, end, cov in peakDetect(genomeCov.decode().split("\n"), 10, 201)]
     # ignore peaks that overlap with the target regions in hg38
     subtractProc = subprocess.Popen(["bedtools", "subtract", "-A", "-a", "-", "-b", args.ignore_bed], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    peaks, _ = subtractProc.communicate(input="\n".join(peaks).endode())
+    peaks, _ = subtractProc.communicate(input="\n".join(peaks).encode())
 
     os.makedirs("fig", exist_ok=True)
     peaks = peaks.decode().split("\n")
