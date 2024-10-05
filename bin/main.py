@@ -21,7 +21,14 @@ def preAssembler(up, down):
             title = ">{}+{}".format(upSeq[0], downSeq[0])
             seq = upSeq[1] + downSeq[1]
             yield "{}\n{}\n".format(title, seq)
-
+        elif up:
+            upSeq = up.pop()
+            title = ">{}".format(upSeq[0])
+            yield "{}\n{}\n".format(title, upSeq[1])
+        else:
+            downSeq = down.pop()
+            title = ">{}".format(downSeq[0])
+            yield "{}\n{}\n".format(title, downSeq[1])
 
 def main(args):
     insertName, insertSeq = next(fastaReader(openFile(args.insert_seq)))
@@ -48,13 +55,13 @@ def main(args):
     bedFile.close()
 
     # find peaks and store in bed format for bedtools
-    peaks = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" for name, start, end, cov in peakDetect(genomeCov.decode().split("\n"), 10, 201)]
+    peaks = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" for name, start, end, cov in peakDetect(genomeCov.decode().rstrip().split("\n"), 10, 201)]
     # ignore peaks that overlap with the target regions in hg38
     subtractProc = subprocess.Popen(["bedtools", "subtract", "-A", "-a", "-", "-b", args.ignore_bed], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     peaks, _ = subtractProc.communicate(input="\n".join(peaks).encode())
 
     os.makedirs("fig", exist_ok=True)
-    peaks = peaks.decode().split("\n")
+    peaks = peaks.decode().rstrip().split("\n")
     count = 0
     for peak in peaks:
         count += 1
@@ -70,11 +77,15 @@ def main(args):
         interscetProc.stdin.close()
 
         seqNames, _ = uniqProc.communicate()
-        seqNames = seqNames.decode().split("\n")
+        seqNames = seqNames.decode().rstrip().split("\n")
         upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
         downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
+
+        if not upstreamReads or not downstreamReads:
+            continue
+
         assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        sedProc = subprocess.Popen(["sed", "'/>/!y/acgt/ACGT/'"], stdin=assembleProc.stdout, stdout=subprocess.PIPE)
+        sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], stdin=assembleProc.stdout, stdout=subprocess.PIPE)
         assembleProc.stdout.close()
         alignProc = subprocess.Popen(["lastal", "-P8", "--split", LASTDB, "-"], stdin=sedProc.stdout, stdout=subprocess.PIPE)
         sedProc.stdout.close()
@@ -85,7 +96,8 @@ def main(args):
             assembleProc.stdin.write(seq.encode())
         assembleProc.stdin.close()
         plotProc.communicate()
-        os.remove("sorted.bed")
+        
+    os.remove("sorted.bed")
 
 if __name__ == "__main__":
     import argparse
