@@ -61,6 +61,9 @@ def main(args):
     peaks, _ = subtractProc.communicate(input="\n".join(peaks).encode())
 
     os.makedirs("fig", exist_ok=True)
+    peakFile = open("peaks.bed", "w")
+    print(peaks.decode(), file=peakFile)
+    peakFile.close()
     peaks = peaks.decode().rstrip().split("\n")
     count = 0
     for peak in peaks:
@@ -81,8 +84,8 @@ def main(args):
         upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
         downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
-        if not upstreamReads or not downstreamReads:
-            continue
+        # if not upstreamReads or not downstreamReads:
+        #     continue
 
         assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], stdin=assembleProc.stdout, stdout=subprocess.PIPE)
@@ -96,7 +99,7 @@ def main(args):
             assembleProc.stdin.write(seq.encode())
         assembleProc.stdin.close()
         plotProc.communicate()
-        
+
     os.remove("sorted.bed")
 
 if __name__ == "__main__":
