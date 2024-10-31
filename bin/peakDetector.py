@@ -11,7 +11,7 @@ def peakDetect(bedgraph, minCov, minWidth):
         start = int(fields[1])
         end = int(fields[2])
         cov = int(fields[3])
-
+        
         if cov < minCov:
             continue
         
@@ -40,10 +40,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Peak detector for bedgraph file")
     parser.add_argument("bedgraph", help="Input bedgraph file")
-    parser.add_argument("minWidth", type=int, help="Minimum width of a peak")
+    parser.add_argument("--minWidth", type=int, help="Minimum width of a peak", default=300)
+    parser.add_argument("--minCov", type=int, help="Minimum coverage", default=10)
     args = parser.parse_args()
 
     with open(args.bedgraph, "r") as bedgraph:
-        for peakChr, peakStart, peakEnd, peakCov in peakDetect(bedgraph, 10, args.minWidth):
+        for peakChr, peakStart, peakEnd, peakCov in peakDetect(bedgraph, args.minCov, args.minWidth):
             # bed format
             print(peakChr, peakStart, peakEnd, "{}:{}-{}".format(peakChr, peakStart, peakEnd), peakCov, sep="\t")

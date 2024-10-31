@@ -6,7 +6,7 @@ from Alignment import Alignment
 
 IGNORED_CHR = set(["chrM", "chrEBV"])
 
-def joinAll(alignments):
+def joinAll(alignments, refGap, queryGap):
     # pick the most representative alignment for one read
     # that indicate the location of insertion
     alns = sorted(list(alignments), key = attrgetter("queryStrand", "refName", "refStart"))
@@ -17,7 +17,7 @@ def joinAll(alignments):
             continue
 
         prevAln = joinedAlns[-1]
-        tmpAln = prevAln.join(aln, refGap = 200, queryGap = 1000)
+        tmpAln = prevAln.join(aln, refGap, queryGap)
         if tmpAln:
             joinedAlns[-1] = tmpAln
         else:
@@ -31,7 +31,7 @@ def genomeAlignmentFilter(genomeMafReader):
         if length < 500:
             continue
         
-        joinedAlns = joinAll(alns)
+        joinedAlns = joinAll(alns, 200, 1000)
         joinedAlns = [aln for aln in joinedAlns if aln.refName not in IGNORED_CHR]
         if len(joinedAlns) < 2:
             continue

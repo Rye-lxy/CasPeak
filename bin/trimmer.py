@@ -17,21 +17,10 @@ def sequenceTrimmer(fastaReader, seqALignmentDict, insertFullSeq, maxTrimmerLeng
         mid = (targetStart + targetEnd) // 2
 
         if targetAln.queryStrand == "+":
-            if not targetStart <= targetAln.refStart <= targetEnd:
-                continue
-            else:
+            if targetStart <= targetAln.refStart <= targetEnd:
                 seq = insertFullSeq[mid : targetAln.refStart] + seq[targetAln.queryStart:]
                 yield seqName, (seq, "+")
         else:
-            if not targetStart <= targetAln.refEnd <= targetEnd:
-                continue
-            else:
+            if targetStart <= targetAln.refEnd <= targetEnd:
                 seq = reverseComplement(seq[targetAln.queryStart:]) + insertFullSeq[targetAln.refEnd : mid]
                 yield seqName, (seq, "-")
-
-        
-
-
-
-
-        

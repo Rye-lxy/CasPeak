@@ -20,20 +20,20 @@ class Alignment:
         return self.refEnd - self.refStart
 
     def join(self, other, refGap, queryGap):
-        # join two alignments if they are co-linear (probably with small indels)
+        # join two alignments if they are co-linear (probably with small indels but no overlap)
         # return a new alignment object
         if not isinstance(other, Alignment):
             raise TypeError("An alignment instance must be joined with another alignment instance")
         if self.refName == other.refName and self.queryName == other.queryName and self.queryStrand == other.queryStrand:
             if self.queryStrand == "+":
-                if other.queryStart - self.queryEnd <= queryGap and other.refStart - self.refEnd <= refGap:
+                if 0 <= other.queryStart - self.queryEnd <= queryGap and 0 <= other.refStart - self.refEnd <= refGap:
                     return Alignment(self.refName, self.refLength, self.refStart, other.refEnd, self.queryName, self.queryLength, self.queryStart, other.queryEnd, self.queryStrand)
-                elif self.queryStart - other.queryEnd <= queryGap and self.refStart - other.refEnd <= refGap:
+                elif 0 <= self.queryStart - other.queryEnd <= queryGap and 0 <= self.refStart - other.refEnd <= refGap:
                     return Alignment(self.refName, self.refLength, other.refStart, self.refEnd, self.queryName, self.queryLength, other.queryStart, self.queryEnd, self.queryStrand)
             else:
-                if other.queryStart - self.queryEnd <= queryGap and self.refStart - other.refEnd <= refGap:
+                if 0 <= other.queryStart - self.queryEnd <= queryGap and 0 <= self.refStart - other.refEnd <= refGap:
                     return Alignment(self.refName, self.refLength, other.refStart, self.refEnd, self.queryName, self.queryLength, self.queryStart, other.queryEnd, self.queryStrand)
-                elif self.queryStart - other.queryEnd <= queryGap and other.refStart - self.refEnd <= refGap:
+                elif 0 <= self.queryStart - other.queryEnd <= queryGap and 0 <= other.refStart - self.refEnd <= refGap:
                     return Alignment(self.refName, self.refLength, self.refStart, other.refEnd, self.queryName, self.queryLength, other.queryStart, self.queryEnd, self.queryStrand)     
         return None
     
