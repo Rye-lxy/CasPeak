@@ -147,7 +147,7 @@ def main(args, plotArgs):
         sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
                                    stdin=assembleProc.stdout, stdout=subprocess.PIPE)
         assembleProc.stdout.close()
-        alignProc = subprocess.Popen(["lastal", "-P8", "--split", args.lastdb, "-"], 
+        alignProc = subprocess.Popen(["lastal", "-P"+str(args.thread), "--split", args.lastdb, "-"], 
                                      stdin=sedProc.stdout, stdout=subprocess.PIPE)
         sedProc.stdout.close()
 
@@ -175,6 +175,7 @@ if __name__ == "__main__":
     parser.add_argument("--insert-seq", required=True, metavar="FASTA", help="insertion sequence (required)")
     parser.add_argument("--ignore-bed", required=True, metavar="BED", help="regions to ignore (required)")
     parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for reference genome (required)")
+    parser.add_argument("--thread", type=int, default=8, help="number of threads")
     parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data from bedtools")
     
     readsGroup = parser.add_argument_group("Arguments for trimming reads")
