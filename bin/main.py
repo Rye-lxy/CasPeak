@@ -175,22 +175,24 @@ if __name__ == "__main__":
     parser.add_argument("--insert-seq", required=True, metavar="FASTA", help="insertion sequence (required)")
     parser.add_argument("--ignore-bed", required=True, metavar="BED", help="regions to ignore (required)")
     parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for reference genome (required)")
-    parser.add_argument("--thread", type=int, default=8, help="number of threads")
-    parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data from bedtools")
+    parser.add_argument("--thread", type=int, default=8, help="number of threads (default: 8)")
+    parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data for bedtools")
     
     readsGroup = parser.add_argument_group("Arguments for trimming reads")
     readsGroup.add_argument("--max-trim-length", type=int, default=100, metavar="NUM",
-                            help="maximum length of the adaptor to be trimmed")
+                            help="maximum length of the adaptor to be trimmed (default: 100)")
     readsGroup.add_argument("--target-start", type=int, required=True, metavar="START",
                             help="start of the target region (required)")
     readsGroup.add_argument("--target-end", type=int, required=True, metavar="END",
                             help="end of the target region (required)")
     readsGroup.add_argument("--padding", type=int, default=20, metavar="NUM",
-                            help="padding for the target region")
+                            help="padding for the target region (default: 20)")
     
     peakGroup = parser.add_argument_group("Arguments for peak detection")
-    peakGroup.add_argument("--min-cov", type=int, default=10, metavar="NUM",help="minimum coverage for a peak")
-    peakGroup.add_argument("--min-width", type=int, default=300,metavar="NUM", help="minimum width for a peak")
+    peakGroup.add_argument("--min-cov", type=int, default=10, metavar="NUM",
+                           help="minimum coverage for a peak (default: 10)")
+    peakGroup.add_argument("--min-width", type=int, default=300,metavar="NUM", 
+                           help="minimum width for a peak (default: 300)")
 
     args, plotArgs = parser.parse_known_args()
 
