@@ -100,16 +100,19 @@ def main(args, plotArgs):
     peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 
                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, args.min_width)]
     # ignore peaks that overlap with the target regions in hg38
-    subtractProc = subprocess.Popen(["bedtools", "subtract", "-A", "-a", "-", "-b", args.ignore_bed], 
-                                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    peaks, _ = subtractProc.communicate(input="\n".join(peakBed).encode())
+    if args.ignore_bed:
+        subtractProc = subprocess.Popen(["bedtools", "subtract", "-A", "-a", "-", "-b", args.ignore_bed], 
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        peaks, _ = subtractProc.communicate(input="\n".join(peakBed).encode())
+        peaks = peaks.decode().rstrip()
+    else:
+        peaks = "\n".join(peakBed)
 
-    os.makedirs("fig", exist_ok=True)
-
-    peaks = peaks.decode().rstrip()
     peakFile = open("peaks.bed", "w")
     print(peaks, file=peakFile)
     peakFile.close()
+
+    os.makedirs("fig", exist_ok=True)
 
     peaks = peaks.split("\n")
     count = 0
@@ -173,8 +176,8 @@ if __name__ == "__main__":
     parser.add_argument("--insert-maf", required=True, metavar="MAF", help="alignment to the insertion sequence (required)")
     parser.add_argument("--read-fasta", required=True, metavar="FASTA", help="read sequences (required)")
     parser.add_argument("--insert-seq", required=True, metavar="FASTA", help="insertion sequence (required)")
-    parser.add_argument("--ignore-bed", required=True, metavar="BED", help="regions to ignore (required)")
     parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for reference genome (required)")
+    parser.add_argument("--ignore-bed", metavar="BED", help="regions to omit from peak detection")
     parser.add_argument("--thread", type=int, default=8, help="number of threads (default: 8)")
     parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data for bedtools")
     
@@ -221,7 +224,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.insert_seq):
         print(f"{args.insert_seq} does not exist", file=sys.stderr)
         exit(1)
-    if not os.path.exists(args.ignore_bed):
+    if args.ignore_bed and not os.path.exists(args.ignore_bed):
         print(f"{args.ignore_bed} does not exist", file=sys.stderr)
         exit(1)
     if not os.path.exists(args.bedtools_genome):

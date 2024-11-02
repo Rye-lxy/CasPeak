@@ -7,6 +7,8 @@ def peakDetect(bedgraph, minCov, minWidth):
     peakCov = None
     for line in bedgraph:
         fields = line.split()
+        if not fields:
+            continue
         chr = fields[0]
         start = int(fields[1])
         end = int(fields[2])
