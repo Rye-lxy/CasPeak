@@ -116,6 +116,7 @@ def main(args, plotArgs):
     peakFile.close()
 
     os.makedirs("fig", exist_ok=True)
+    resAlnFile = open("peaks.maf", "a")
 
     peaks = peaks.split("\n")
     count = 0
@@ -162,12 +163,17 @@ def main(args, plotArgs):
         assembleProc.stdin.close()
         alignedPeakMaf, _ = alignProc.communicate()
 
-        if not finalAlignmentCheck(mafReader(alignedPeakMaf.decode().split("\n")), peakChr, peakStart, peakEnd):
+        alignedPeakMafContent = alignedPeakMaf.decode().split("\n")
+        if not finalAlignmentCheck(mafReader(alignedPeakMafContent), peakChr, peakStart, peakEnd):
             continue
+
+        alignedPeakMafContent = [x for x in alignedPeakMafContent if not x.startswith("#")]
+        print("\n".join(alignedPeakMafContent), file=resAlnFile, end="\n\n")
 
         plotProc = subprocess.Popen(["last-dotplot"] + plotArgs + ["-", f"fig/peak{count}.png"], stdin=subprocess.PIPE)
         plotProc.communicate(input=alignedPeakMaf)
-    # os.remove("sorted.bed")
+    
+    resAlnFile.close()
 
 if __name__ == "__main__":
     import argparse
