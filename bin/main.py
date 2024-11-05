@@ -63,7 +63,10 @@ def main(args, plotArgs):
     insertAlignments = dict((name, sorted(list(alns), key=attrgetter("queryStart"))) 
                             for name, alns in itertools.groupby(mafReader(openFile(args.insert_maf)), key=attrgetter("queryName")))
     
-    genomeAlignments = dict(genomeAlignmentFilter(mafReader(openFile(args.genome_maf))))
+    genomeAlignments = dict(genomeAlignmentFilter(mafReader(openFile(args.genome_maf)),
+                                                  minReadLen=args.min_read_length,
+                                                  maxProp=args.max_prop,
+                                                  minProp=args.min_prop))
 
     trimmedReads = dict(sequenceTrimmer(fastaReader(openFile(args.read_fasta)), 
                                         insertAlignments, 
@@ -180,6 +183,14 @@ if __name__ == "__main__":
     parser.add_argument("--ignore-bed", metavar="BED", help="regions to omit from peak detection")
     parser.add_argument("--thread", type=int, default=8, help="number of threads (default: 8)")
     parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data for bedtools")
+    
+    filterGroup = parser.add_argument_group("Arguments for filtering reads")
+    filterGroup.add_argument("--min-read-length", type=int, default=500, metavar="NUM",
+                             help="minimum read length (default: 500)")
+    filterGroup.add_argument("--max-prop", type=float, default=0.99, metavar="NUM",
+                             help="maximum proportion of the read aligned to the reference genome (default: 0.99)")
+    filterGroup.add_argument("--min-prop", type=float, default=0.4, metavar="NUM",
+                            help="minimum proportion of the read aligned to the reference genome (default: 0.4)")
     
     readsGroup = parser.add_argument_group("Arguments for trimming reads")
     readsGroup.add_argument("--max-trim-length", type=int, default=100, metavar="NUM",

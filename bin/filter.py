@@ -24,11 +24,11 @@ def joinAll(alignments, refGap, queryGap):
             joinedAlns.append(aln)
     return joinedAlns
 
-def genomeAlignmentFilter(genomeMafReader):
+def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp):
     # filter for the read alignment to hg38
     for read, alns in itertools.groupby(genomeMafReader, key=attrgetter("queryName", "queryLength")):
         name, length = read
-        if length < 500:
+        if length < minReadLen:
             continue
         
         joinedAlns = joinAll(alns, 200, 1000)
@@ -38,7 +38,7 @@ def genomeAlignmentFilter(genomeMafReader):
 
         maxAln = max(joinedAlns, key = lambda x: x.getRefLength())
         maxRefLength = maxAln.getRefLength()
-        if maxRefLength / length >= 0.99 or maxRefLength / length < 0.4:
+        if maxRefLength / length >= maxProp or maxRefLength / length < minProp:
             continue
         if length - maxRefLength < 100:
             continue
