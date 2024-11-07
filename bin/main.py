@@ -66,7 +66,8 @@ def main(args, plotArgs):
     genomeAlignments = dict(genomeAlignmentFilter(mafReader(openFile(args.genome_maf)),
                                                   minReadLen=args.min_read_length,
                                                   maxProp=args.max_prop,
-                                                  minProp=args.min_prop))
+                                                  minProp=args.min_prop,
+                                                  exogenous=args.exog))
 
     trimmedReads = dict(sequenceTrimmer(fastaReader(openFile(args.read_fasta)), 
                                         insertAlignments, 
@@ -102,6 +103,7 @@ def main(args, plotArgs):
     # find peaks and store in bed format for bedtools
     peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 
                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, args.min_width)]
+    
     # ignore peaks that overlap with the target regions in hg38
     if args.ignore_bed:
         subtractProc = subprocess.Popen(["bedtools", "subtract", "-A", "-a", "-", "-b", args.ignore_bed], 
@@ -186,9 +188,10 @@ if __name__ == "__main__":
     parser.add_argument("--read-fasta", required=True, metavar="FASTA", help="read sequences (required)")
     parser.add_argument("--insert-seq", required=True, metavar="FASTA", help="insertion sequence (required)")
     parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for reference genome (required)")
-    parser.add_argument("--ignore-bed", metavar="BED", help="regions to omit from peak detection")
+    parser.add_argument("--ignore-bed", metavar="BED", help="regions to exclude from peak detection")
     parser.add_argument("--thread", type=int, default=8, help="number of threads (default: 8)")
     parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data for bedtools")
+    parser.add_argument("-x", "--exog", action="store_true", help="specify the insertion exogenous")
     
     filterGroup = parser.add_argument_group("Arguments for filtering reads")
     filterGroup.add_argument("--min-read-length", type=int, default=500, metavar="NUM",

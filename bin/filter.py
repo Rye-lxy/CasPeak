@@ -4,7 +4,8 @@ import itertools
 from operator import attrgetter
 from Alignment import Alignment
 
-IGNORED_CHR = set(["chrM", "chrEBV"])
+IGNORED_CHR = set(["chrM", 
+                   "chrEBV"])
 
 def joinAll(alignments, refGap, queryGap):
     # pick the most representative alignment for one read
@@ -24,7 +25,7 @@ def joinAll(alignments, refGap, queryGap):
             joinedAlns.append(aln)
     return joinedAlns
 
-def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp):
+def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp, exogenous):
     # filter for the read alignment to hg38
     for read, alns in itertools.groupby(genomeMafReader, key=attrgetter("queryName", "queryLength")):
         name, length = read
@@ -33,7 +34,7 @@ def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp):
         
         joinedAlns = joinAll(alns, 200, 1000)
         joinedAlns = [aln for aln in joinedAlns if aln.refName not in IGNORED_CHR]
-        if len(joinedAlns) < 2:
+        if not exogenous and len(joinedAlns) < 2:
             continue
 
         maxAln = max(joinedAlns, key = lambda x: x.getRefLength())
