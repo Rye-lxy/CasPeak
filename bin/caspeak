@@ -29,13 +29,14 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: caspeak --read <read> --ref <ref> --insert <insert> --start <start> --end <end> [-p <thread>] [-x] ..."
             echo "Options:"
             echo "  -h, --help: show this help message and exit"
-            echo "  --read: path to the read FASTA/FATSQ file (required)"
-            echo "  --ref: path to the reference genome FASTA file (required)"
-            echo "  --insert: path to insert sequence FASTA file (required)"
+            echo "  --read: the read FASTA/FATSQ file (required)"
+            echo "  --ref: the reference genome FASTA file (required)"
+            echo "  --insert: insert sequence FASTA file (required)"
             echo "  --start: start position of the target in the insert sequence (required)"
             echo "  --end: end position of the target in the insert sequence (required)"
+            echo "  --anno: the insertion annotation file on the reference genome"
             echo "  -p, --thread: number of threads (default 8)"
-            echo "  -x: set the insert as exoggenous"
+            echo "  -x: set the insert as exogenous"
             exit 0
             ;;
         --read)
@@ -58,6 +59,10 @@ while [[ $# -gt 0 ]]; do
             end="$2"
             shift 2
             ;;
+        --anno)
+            anno="$2"
+            shift 2
+            ;;
         -p|--thread)
             thread="$2"
             shift 2
@@ -73,13 +78,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if required arguments are provided
+# Check if the arguments are valid
 if [ -z "$read" ] || [ -z "$ref" ] || [ -z "$insert" ] || [ -z "$start" ] || [ -z "$end" ]; then
     echo "Missing required arguments. Exit." >&2
     exit 1
 elif [ ! -f "$read" ] || [ ! -f "$ref" ] || [ ! -f "$insert" ]; then
     echo "Some input files not found. Exit." >&2
     exit 1
+fi
+if [ -n "$anno" ] && [[ $x -ne 0 ]] ; then
+    echo "Exogenous insertion should not have annotation file. Exit." >&2
 fi
 
 # Run LAST
@@ -91,7 +99,7 @@ last-train -P$thread -Q0 lastdb/ref $read | lastal -P$thread --split -p - lastdb
 last-train -P$thread -Q0 lastdb/insert $read | lastal -P$thread --split -p - lastdb/insert $read > lastal/read_to_insert.maf
 
 ignore_bed=""
-lastdb="--lastdb lastdb/ref"
+# lastdb="--lastdb lastdb/ref"
 exog="--exog"
 if [[ $x -eq 0 ]]; then
     head -n 1 $insert > target.fa
@@ -100,6 +108,20 @@ if [[ $x -eq 0 ]]; then
     lastal -P$thread lastdb/target $ref | maf-convert bed -s 2 > lastal/target_to_ref.bed
     ignore_bed="--ignore-bed lastal/target_to_ref.bed"
     exog=""
+
+    if [ -n "$anno" ]; then
+        if ! command -v seg-mask > /dev/null; then
+            echo "seg-mask not found in PATH. Exit." >&2
+            exit 1
+        fi
+        seg-import rmsk $anno | seg-mask -c - $ref | lastdb -P$thread -uRY4 lastdb/validate - $insert
+        lastdb="--lastdb lastdb/validate"
+    else
+        lastdb="--lastdb lastdb/ref"
+    fi
+else
+    lastdb -P$thread -uRY4 lastdb/validate $ref $insert
+    lastdb="--lastdb lastdb/validate"
 fi
 
 # Run analyzer

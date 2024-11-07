@@ -187,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument("--insert-maf", required=True, metavar="MAF", help="alignment to the insertion sequence (required)")
     parser.add_argument("--read-fasta", required=True, metavar="FASTA", help="read sequences (required)")
     parser.add_argument("--insert-seq", required=True, metavar="FASTA", help="insertion sequence (required)")
-    parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for reference genome (required)")
+    parser.add_argument("--lastdb", required=True, metavar="LASTDB", help="lastdb for validation genome (required)")
     parser.add_argument("--ignore-bed", metavar="BED", help="regions to exclude from peak detection")
     parser.add_argument("--thread", type=int, default=8, help="number of threads (default: 8)")
     parser.add_argument("--bedtools-genome", metavar="GENOME", help="genome data for bedtools")
