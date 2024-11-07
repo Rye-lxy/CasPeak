@@ -36,16 +36,27 @@ def mafReader(lines):
                 isRef = True
     
 def fastaReader(lines):
-    name = None
-    seq = ""
+    title = None
+    fastq = None
     for line in lines:
-        if line.startswith(">"):
-            if name:
-                yield name, seq
-            name = line[1:].split()[0]
-            seq = ""
+        stripped = line.rstrip()
+        if fastq is not None:
+            fastq.append(stripped)
+            if len(fastq) == 4:
+                title = fastq[0][1:].split()[0]
+                seq = fastq[1]
+                yield title, seq
+                fastq = []
+        elif line[0] == ">":
+            if title:
+                yield title, "".join(seq)
+            title = stripped[1:].split()[0]
+            seq = []
+        elif title:
+            seq.append(stripped)
         else:
-            seq += line.rstrip()
-    if name:
-        yield name, seq
+            fastq = [stripped]
+    if title:
+        yield title, "".join(seq)
+
 
