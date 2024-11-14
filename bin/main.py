@@ -166,7 +166,7 @@ def main(args, plotArgs):
         alignedPeakMaf, _ = alignProc.communicate()
 
         alignedPeakMafContent = alignedPeakMaf.decode().split("\n")
-        if not finalAlignmentCheck(mafReader(alignedPeakMafContent), peakChr, peakStart, peakEnd):
+        if not args.exog and not finalAlignmentCheck(mafReader(alignedPeakMafContent), peakChr, peakStart, peakEnd):
             continue
 
         alignedPeakMafContent = [x for x in alignedPeakMafContent if not x.startswith("#")]
