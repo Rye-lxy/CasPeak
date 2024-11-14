@@ -120,7 +120,7 @@ def main(args, plotArgs):
     os.makedirs("fig", exist_ok=True)
     resAlnFile = open("peaks.maf", "a")
 
-    peaks = peaks.split("\n")
+    peaks = peaks.rstrip().split("\n")
     count = 0
     for peak in peaks:
         count += 1

@@ -99,7 +99,6 @@ last-train -P$thread -Q0 lastdb/ref $read | lastal -P$thread --split -p - lastdb
 last-train -P$thread -Q0 lastdb/insert $read | lastal -P$thread --split -p - lastdb/insert $read > lastal/read_to_insert.maf
 
 ignore_bed=""
-# lastdb="--lastdb lastdb/ref"
 exog="--exog"
 if [[ $x -eq 0 ]]; then
     head -n 1 $insert > target.fa
