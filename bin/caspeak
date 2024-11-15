@@ -1,23 +1,5 @@
 #! /bin/bash
 
-# Check if required tools are installed
-if ! command -v bedtools > /dev/null; then
-    echo "bedtools not found in PATH. Exit." >&2
-    exit 1
-fi
-if ! command -v lastal > /dev/null; then
-    echo "lastal not found in PATH. Exit." >&2
-    exit 1
-fi
-if ! command -v lamassemble > /dev/null; then
-    echo "lamassemble not found in PATH. Exit." >&2
-    exit 1
-fi
-if ! command -v last-dotplot > /dev/null; then
-    echo "last-dotplot not found in PATH. Exit." >&2
-    exit 1
-fi
-
 # Set default values
 thread=8
 x=0
@@ -88,6 +70,24 @@ elif [ ! -f "$read" ] || [ ! -f "$ref" ] || [ ! -f "$insert" ]; then
 fi
 if [ -n "$anno" ] && [[ $x -ne 0 ]] ; then
     echo "Exogenous insertion should not have annotation file. Exit." >&2
+fi
+
+# Check if required tools are installed
+if ! command -v bedtools > /dev/null; then
+    echo "bedtools not found in PATH. Exit." >&2
+    exit 1
+fi
+if ! command -v lastal > /dev/null; then
+    echo "lastal not found in PATH. Exit." >&2
+    exit 1
+fi
+if ! command -v lamassemble > /dev/null; then
+    echo "lamassemble not found in PATH. Exit." >&2
+    exit 1
+fi
+if ! command -v last-dotplot > /dev/null; then
+    echo "last-dotplot not found in PATH. Exit." >&2
+    exit 1
 fi
 
 # Run LAST
