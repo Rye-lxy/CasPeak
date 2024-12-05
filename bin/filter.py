@@ -4,8 +4,7 @@ import itertools
 from operator import attrgetter
 from Alignment import Alignment
 
-IGNORED_CHR = set(["chrM", 
-                   "chrEBV"])
+IGNORED_CHR = set(["chrM", "chrEBV"])
 
 def joinAll(alignments, refGap, queryGap):
     # pick the most representative alignment for one read
