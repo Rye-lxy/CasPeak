@@ -2,7 +2,6 @@
 
 import itertools
 from operator import attrgetter
-from Alignment import Alignment
 
 IGNORED_CHR = set(["chrM", "chrEBV"])
 
