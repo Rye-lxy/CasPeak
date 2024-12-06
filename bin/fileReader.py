@@ -5,6 +5,8 @@ import gzip
 from Alignment import Alignment
 
 def openFile(fileName):
+    if fileName is None:
+        return []
     if fileName == "-":
         return sys.stdin
     if fileName.endswith(".gz"):
