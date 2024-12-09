@@ -72,8 +72,8 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd):
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
-    # 1. args: trim_read, peak_bed, thread, sample
-    # 2. args: thread, sample
+    # 1. args: trim_read, peak_bed, thread, sample, vcf
+    # 2. args: thread, sample, vcf
     args = params[0]
     if len(params) == 3:
         trimmedReads, peaks = params[1], params[2]
@@ -87,8 +87,9 @@ def validate(*params):
     resMaf = open("result/validate.maf", "w")
     # resPeak = open("result/validate.peak.bed", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
-    refVcf = open("result/validate.vcf", "w")
-    print(vcfHeader(), file=refVcf, end="\n")
+    if args.vcf:
+        refVcf = open("result/validate.vcf", "w")
+        print(vcfHeader(), file=refVcf, end="\n")
 
     count = 1
     for peak in peaks:
@@ -128,9 +129,11 @@ def validate(*params):
         alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
         print("\n".join(alignValidMaf), file=resMaf, end="\n")
         # print(peak, file=resPeak, end="\n")
-
-        assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
-        print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=refVcf, end="\n")
+        
+        if args.vcf:
+            assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
+            print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=refVcf, end="\n")
+        
         count += 1
 
     resMaf.close()

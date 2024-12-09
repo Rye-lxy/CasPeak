@@ -41,6 +41,7 @@ def addValidGroup(parser: argparse.ArgumentParser):
     validGroup = parser.add_argument_group("parameters for validation")
     validGroup.add_argument("--sample", type=int, default=500, metavar="N",
                             help="at most N reads are selected for assembly (default: %(default)s)")
+    validGroup.add_argument("--vcf", action="store_true", help="output the validated result in VCF format")
 
 def softwareCheck():
     if shutil.which("bedtools") is None:
