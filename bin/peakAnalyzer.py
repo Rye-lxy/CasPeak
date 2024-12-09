@@ -6,13 +6,13 @@ import shutil
 import subprocess
 
 from fileReader import *
-from filter import *
+from alignmentFilter import *
 from trimmer import *
 from peakDetector import *
 
 
 def peakAnalyze(args):
-    # args: read, ref, insert, genome_maf, insert_maf, target_start, target_end, exog, thread, bedtools_genome, anno
+    # args: read, ref, insert, genome_maf, insert_maf, target_start, target_end, exog, thread, bedtools_genome, mask
     # min_read_length, max_prop, min_prop, max_trim_length, padding, min_cov, min_width, 
     os.makedirs("peak", exist_ok=True)
 

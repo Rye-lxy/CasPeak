@@ -4,7 +4,6 @@ from operator import attrgetter
 import os
 import subprocess
 
-from filter import joinAll
 from fileReader import *
 
 def preAssembler(up, down, sample):
