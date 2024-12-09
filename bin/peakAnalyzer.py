@@ -60,13 +60,13 @@ def peakAnalyze(args):
         subprocess.check_call(f"lastdb -P{args.thread} -uRY4 lastdb/validate {args.ref} {args.insert}", shell=True)
         peaks = "\n".join(peakBed).rstrip()
     else:
-        if args.anno:
+        if args.mask:
             if shutil.which("seg-import") is None:
                 print("seg-import is not found in PATH", file=sys.stderr)
                 exit(1)
-            subprocess.check_call(f"seg-import rmsk {args.anno} | seg-mask -c - {args.ref} | lastdb -P{args.thread} -uRY4 lastdb/validate - {args.insert}", shell=True)
+            subprocess.check_call(f"seg-import rmsk {args.mask} | seg-mask -c - {args.ref} | lastdb -P{args.thread} -uRY4 -R11 -c lastdb/validate - {args.insert}", shell=True)
         else:
-            # copy the reference lastdb as validate
+            # copy the reference lastdb to validate
             for file in os.listdir("lastdb"):
                 if file.startswith("ref"):
                     shutil.copy(f"lastdb/{file}", "lastdb/validate"+file[3:])
