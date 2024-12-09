@@ -13,47 +13,55 @@ def preAssembler(up, down):
         if up and down:
             upSeq = up.pop()
             downSeq = down.pop()
-            title = ">{}+{}".format(upSeq[0], downSeq[0])
+            title = f">{upSeq[0]}+{downSeq[0]}"
             seq = upSeq[1] + downSeq[1]
-            yield "{}\n{}\n".format(title, seq)
         elif up:
             upSeq = up.pop()
-            title = ">{}".format(upSeq[0])
-            yield "{}\n{}\n".format(title, upSeq[1])
+            title = f">{upSeq[0]}"
+            seq = upSeq[1]
         else:
             downSeq = down.pop()
-            title = ">{}".format(downSeq[0])
-            yield "{}\n{}\n".format(title, downSeq[1])
+            title = f">{downSeq[0]}"
+            seq = downSeq[1]
+        yield f"{title}\n{seq}\n"
 
-# TODO: need modification
 def finalAlignmentCheck(alignments, peakChr, peakStart, peakEnd):
-    alns = sorted(list(alignments), key = attrgetter("queryStrand", "refName", "refStart"))
-    if len(alns) < 2 or len(alns) > 25:
+    alns = sorted(list(alignments), key=attrgetter("queryStart"))
+    if len(alns) < 2:
         return False
 
-    joinedAlns = joinAll(alns, 200, 7000)
-    if len(joinedAlns) <= 2:
-        return False
+    minInsertLen = 300
+    shift = 30
+    upstreamAln = None
+    downstreamAln = None
+    insertLen = 0
+    checkRange = range(peakStart, peakEnd)
+    for aln in alns:
+        if aln.refName == peakChr and aln.refEnd in checkRange:
+            if downstreamAln is None:
+                upstreamAln = aln
+                checkRange = range(aln.refEnd-shift, aln.refEnd+shift)
+            elif aln.queryStrand == downstreamAln.queryStrand:
+                upstreamAln = aln
+        if aln.refName == peakChr and aln.refStart in checkRange:
+            if upstreamAln is None:
+                downstreamAln = aln
+                checkRange = range(aln.refStart-shift, aln.refStart+shift)
+            elif aln.queryStrand == upstreamAln.queryStrand:
+                downstreamAln = aln
 
-    findLoc = False
-    peakRange = range(int(peakStart), int(peakEnd))
-    for info, alnChunk in itertools.groupby(alns, key = attrgetter("queryStrand", "refName")):
-        _, refName = info
-        if refName != peakChr:
-            continue
-        lastEnd = None
-        for aln in alnChunk:
-            if lastEnd is None:
-                lastEnd = aln.refEnd
-            elif lastEnd in peakRange and aln.refStart in peakRange:
-                findLoc = True
-                break
+        if upstreamAln and downstreamAln:
+            if insertLen >= minInsertLen:
+                return True
             else:
-                lastEnd = aln.refEnd
-        if findLoc:
-            break
-    
-    return findLoc
+                upstreamAln = None
+                downstreamAln = None
+                insertLen = 0
+                checkRange = range(peakStart, peakEnd+1)
+        elif upstreamAln or downstreamAln:
+            if aln is not upstreamAln and aln is not downstreamAln:
+                insertLen += aln.getRefLength()
+    return False
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
@@ -70,11 +78,11 @@ def validate(*params):
     
     os.makedirs("result", exist_ok=True)
     resMaf = open("result/validate.maf", "w")
+    resPeak = open("result/validate.peak.bed", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
 
     count = 1
     for peak in peaks:
-        print(peak)
         peakChr, peakStart, peakEnd, _, peakCov = peak.split()
         if int(peakCov) > 1000: # skip peaks with extremely high coverage
             continue
@@ -104,12 +112,12 @@ def validate(*params):
         alignedPeakMaf, _ = alignProc.communicate()
 
         alignedPeakMafContent = alignedPeakMaf.decode().split("\n")
-        if not args.exog and not finalAlignmentCheck(mafReader(alignedPeakMafContent), peakChr, peakStart, peakEnd):
+        if not args.exog and not finalAlignmentCheck(mafReader(alignedPeakMafContent), peakChr, int(peakStart), int(peakEnd)):
             continue
 
-        print("")
         alignedPeakMafContent = [x for x in alignedPeakMafContent if not x.startswith("#")]
         print("\n".join(alignedPeakMafContent), file=resMaf, end="\n")
+        print(peak, file=resPeak, end="\n")
         count += 1
 
     resMaf.close()

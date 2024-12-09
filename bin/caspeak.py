@@ -87,6 +87,8 @@ def execAllSteps(args):
     checkWorkdir(args)
 
     aligner(args)
+    args.genome_maf = "lastal/read_to_ref.maf"
+    args.insert_maf = "lastal/read_to_insert.maf"
     trimmedReads, peaks = peakAnalyze(args)
     validate(args, trimmedReads, peaks)
     
@@ -251,8 +253,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    try :
+    if hasattr(args, "func"):
         args.func(args)
-    except AttributeError:
+    else:
         parser.print_help()
         exit(1)
