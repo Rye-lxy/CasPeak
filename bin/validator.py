@@ -5,6 +5,7 @@ import os
 import subprocess
 
 from fileReader import *
+from vcfFormatter import *
 
 def preAssembler(up, down, sample):
     count = 1
@@ -34,7 +35,7 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
     # insertAlns = sorted(list(insAlns), key=attrgetter("queryStart"))
     if len(alns) < 2:
-        return False
+        return None
 
     minInsertLen = 300
     shift = 30
@@ -62,17 +63,17 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd):
             for insertAln in insAlns:
                 insertLen += operlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
             if insertLen >= minInsertLen:
-                return True
+                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
                 upstreamAln = None
                 downstreamAln = None
                 checkRange = range(peakStart, peakEnd+1)
-    return False
+    return None
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
-    # 1. args: trim_read, peak_bed, thread, exog, sample
-    # 2. args: thread, exog, sample
+    # 1. args: trim_read, peak_bed, thread, sample
+    # 2. args: thread, sample
     args = params[0]
     if len(params) == 3:
         trimmedReads, peaks = params[1], params[2]
@@ -84,12 +85,14 @@ def validate(*params):
     
     os.makedirs("result", exist_ok=True)
     resMaf = open("result/validate.maf", "w")
-    resPeak = open("result/validate.peak.bed", "w")
+    # resPeak = open("result/validate.peak.bed", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
+    refVcf = open("result/validate.vcf", "w")
+    print(vcfHeader(), file=refVcf, end="\n")
 
     count = 1
     for peak in peaks:
-        peakChr, peakStart, peakEnd, _, peakCov = peak.split()
+        peakChr, peakStart, peakEnd, _, _ = peak.split()
 
         peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
                                      input=peak.encode()).stdout.decode().rstrip().split("\n")
@@ -101,7 +104,7 @@ def validate(*params):
         if not upstreamReads or not downstreamReads:
             continue
 
-        assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-"], 
+        assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-P", str(args.thread), "-"], 
                                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
                                    stdin=assembleProc.stdout, stdout=subprocess.PIPE)
@@ -118,15 +121,16 @@ def validate(*params):
         alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
                                      input=assemblyFasta).stdout.decode().split("\n")
 
-        print("\n".join(alignValidMaf), file=sys.stderr)
-        print("\n".join(alignInsertMaf), file=sys.stderr)
-
-        if not args.exog and not finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd)):
+        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd))
+        if vcfData is None:
             continue
 
         alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
         print("\n".join(alignValidMaf), file=resMaf, end="\n")
-        print(peak, file=resPeak, end="\n")
+        # print(peak, file=resPeak, end="\n")
+
+        assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
+        print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=refVcf, end="\n")
         count += 1
 
     resMaf.close()

@@ -155,7 +155,6 @@ if __name__ == "__main__":
     valid_parser = subparsers.add_parser("valid", help="Validate peaks and output the final result")
     valid_parser.add_argument("--trim-read", required=True, metavar="FILE", help="read FASTA file after trimming (required)")
     valid_parser.add_argument("--peak-bed", required=True, metavar="FILE", help="peak BED file (required)")
-    valid_parser.add_argument("-x", "--exog", action="store_true", help="set the insertion exogenous")
     addSharedArgs(valid_parser)
     addValidGroup(valid_parser)
     valid_parser.set_defaults(func=execValid)
