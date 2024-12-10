@@ -41,6 +41,8 @@ def fastaReader(lines):
     title = None
     fastq = None
     for line in lines:
+        if not line:
+            continue
         stripped = line.rstrip()
         if fastq is not None:
             fastq.append(stripped)
