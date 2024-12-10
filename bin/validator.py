@@ -88,8 +88,8 @@ def validate(*params):
     # resPeak = open("result/validate.peak.bed", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
     if args.vcf:
-        refVcf = open("result/validate.vcf", "w")
-        print(vcfHeader(), file=refVcf, end="\n")
+        resVcf = open("result/validate.vcf", "w")
+        print(vcfHeader(), file=resVcf, end="\n")
 
     count = 1
     for peak in peaks:
@@ -132,8 +132,9 @@ def validate(*params):
         
         if args.vcf:
             assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
-            print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=refVcf, end="\n")
+            print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=resVcf, end="\n")
         
         count += 1
 
     resMaf.close()
+    if args.vcf: resVcf.close()
