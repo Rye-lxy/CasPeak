@@ -10,7 +10,7 @@ def vcfHeader():
 ##source=Caspeak
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the structural variant">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
-##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="Length of structural variant">
 ##INFO=<ID=matching_classes,Number=.,Type=String,Description="Repeat class names">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tSAMPLE"""
