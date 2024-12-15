@@ -1,6 +1,6 @@
 # Caspeak
 
-This is a pipeline for finding mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
+This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
 
 ## Usage
 `caspeak` consists of several subcommands, like `git` or `bedtools`, listed as follows:
@@ -27,7 +27,7 @@ caspeak [subcommand] -h
 | `--ref` | Reference genome of the sequenced species in FASTA or FASTQ format (**required**). |
 | `--insert` | Consensus sequence of the mobile element in FASTA or FASTQ format (**required**). |
 | `--thread` | Specify the threads running in parallel (default: 1). |
-| `--workdir`| Specify the root directory for caspeak output (default: current directory). |
+| `--workdir`| Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 
 ### peak
 `caspeak peak` can filter the reads by alignments to both reference genome and insert consensus sequence, and calculate the coverage peaks. Simultaneously, it will prepare several files for `caspeak valid` to avoid duplicate parameters.
@@ -38,15 +38,34 @@ caspeak [subcommand] -h
 | `--insert` | Consensus sequence of the mobile element in FASTA or FASTQ format (**required**). |
 | `--target-start` | The start position of the Cas9 target site in the consensus sequence (**required**). |
 | `--target-end` | The end position of the Cas9 target site in the consensus sequence (**required**). |
-| `--genome-maf` | The read alignment to the reference genome. It can be found automatically if you specify the same `--workdir` in `caspeak align` and `caspeak peak`. |
-| `--insert-maf` | The read alignment to the consensus sequence, and it can also be found automatically like `--genome-maf`. |
-| `--bedtools-genome` | A genome file passed to [`bedtools genomecov -g`](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html). In general, several genome files should be included in the *genomes* directory under your path to `bedtools`, and `caspeak peak` will use *human.hg38.genome* in it if you ignore this option. |
+| `--genome-maf` | The read alignment to the reference genome in MAF format. In general, `caspeak align` will output it as *lastal/read_to_ref.maf* under your working directory. You can ignore it if you specify the same `--workdir` for `caspeak align` and `caspeak peak`. |
+| `--insert-maf` | The read alignment to the consensus sequence in MAF format. In general, `caspeak align` will output it as *lastal/read_to_insert.maf* and it can also be ignored like `--genome-maf`. |
+| `--bedtools-genome` | A genome file passed to [`bedtools genomecov -g`](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html). In general, several genome files should be included in *genomes* dir under your path to `bedtools`, and `caspeak peak` will use *human.hg38.genome* in it if you ignore this option. |
 | `-x`, `--exog` | Specify the mobile element as an exogenous element, which means there is no identical sequence in the reference genome. |
 | `--mask` | The region to be masked in rmsk format. If the reads come from a repeat element (i.e. LINE1) insertion, it is recommended that an annotation file should be sepcified. |
-| `--thread` | specify the threads running in parallel (default: 1) |
-| `--workdir`| specify the root directory for caspeak output (default: current directory) |
+| `--thread` | Specify the threads running in parallel (default: 1). |
+| `--workdir`| Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
+||
+| `--min-read-length`| Specify the minimum read leangth N (default: 500). The reads less than N bases will be filtered out. |
+| `--max-prop` | Specify the maximum proportion of the longest continuous alignment on the reference genome to the whole read (default: 0.99). | 
+| `--min-prop` |  Specify the minimum proportion of the longest continuous alignment on the reference genome to the whole read (default: 0.4). |
+||
+| `--max-trim-length` | Specify the maximum length N to be trimmed before the first alignment to in insert sequence (default: 100). Reads with distance between the first base and the the first alignment longer than N will be filtered out. |
+| `--padding` | Specify the padding size of the target region (default: 20). This option enables the reads that are not exactly targeted. |
+||
+| `--min-cov` | Specify the minimum coverage to be considered in peak detection (default: 10). |
+| `--min-width` | Specify the minimum width of a peak (default: 300). |
 ### valid
 
+`caspeak valid` validates peaks listed in BED format. For each peak, `caspeak valid` will collect the reads involved, assemble them by [`lamassemble`](https://gitlab.com/mcfrith/lamassemble), and re-align the assembly sequence to validate whether the peak indicates a real non-reference insertion. And it will generate the final result to *result* dir only in MAF format if `--vcf` is ignored.
+| Option | Description |
+| --- | --- |
+| `--trim-read` | The read file after filtering and trimming, usually generated by `caspeak peak` and named as *peak/trimmed_reads.fasta* under your working directory (**required**). |
+| `--peak-bed` | The peak file in BED format, usually generated by `caspeak peak` and named as *peak/peaks.bed* under your working directory (**required**). |
+| `--thread` | Specify the threads running in parallel (default: 1). |
+| `--workdir`| Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
+| `--sample` | Specify that at most N pairs of reads are assembled (default: 500). |
+| `--vcf` | Indicate an extra output in VCF format. |
 ### exec
 
 ### plot
