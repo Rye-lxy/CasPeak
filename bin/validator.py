@@ -31,13 +31,12 @@ def operlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
         return 0
     return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
-def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd):
+def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsertLen):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
     # insertAlns = sorted(list(insAlns), key=attrgetter("queryStart"))
     if len(alns) < 2:
         return None
 
-    minInsertLen = 300
     shift = 30
     upstreamAln = None
     downstreamAln = None
@@ -122,7 +121,7 @@ def validate(*params):
         alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
                                      input=assemblyFasta).stdout.decode().split("\n")
 
-        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd))
+        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)
         if vcfData is None:
             continue
 

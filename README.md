@@ -107,6 +107,7 @@ caspeak plot --maf peak/validate.maf
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 | `--sample` <INT\> | Specify that at most N pairs of reads are assembled (default: 500). |
+| `--min-insert` <INT\>| Specify the minimum insertion length to be validate (default: 300). |
 | `--vcf` | Indicate an extra output in VCF format. |
 ### exec
 `caspeak exec` actually provided a shortcut and wrapper for `caspeak align`, `caspeak peak` and `caspeak valid`. It improves speed by skipping several I/O operations.
@@ -169,7 +170,10 @@ caspeak plot --maf peak/validate.maf
     </tr>
     <tr>
         <td><code>--sample</code></td>
-        <td rowspan="2">See <a href="#valid">valid options</a>.</td>
+        <td rowspan="3">See <a href="#valid">valid options</a>.</td>
+    </tr>
+    <tr>
+        <td><code>--min-insert</code></td>
     </tr>
     <tr>
         <td><code>--vcf</code></td>
