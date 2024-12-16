@@ -21,7 +21,7 @@ caspeak [subcommand] -h
 ### Quick Start
 Before running caspeak, you need to prepare the following required input file in FASTA or FASTQ format:
 * raw Cas9 targeted sequencing data,
-* the reference genome (i.e. GRCh38),
+* the reference genome (e.g. GRCh38),
 * the consensus sequence of the mobile element.
 
 And of course, you should know the where the Cas9 target site is in the consensus sequence.
