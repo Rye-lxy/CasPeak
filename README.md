@@ -88,7 +88,7 @@ caspeak plot --maf peak/validate.maf
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 ||**Parameters for filtering reads**|
-| `--min-read-length` <INT\> | Specify the minimum read leangth N (default: 500). The reads less than N bases will be filtered out. |
+| `--min-read-length` <INT\> | Specify the minimum read length N (default: 500). The reads less than N bases will be filtered out. |
 | `--max-prop` <NUM\> | Specify the maximum proportion of the longest continuous alignment on the reference genome to the whole read (default: 0.99). | 
 | `--min-prop` <NUM\> |  Specify the minimum proportion of the longest continuous alignment on the reference genome to the whole read (default: 0.4). |
 ||**Parameters for trimming reads**|
