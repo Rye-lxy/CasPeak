@@ -26,14 +26,14 @@ def preAssembler(up, down, sample):
         yield f"{title}\n{seq}\n"
         count += 1
 
-def operlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
+def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
     if intervalStart1 >= intervalEnd2 or intervalEnd1 <= intervalStart2:
         return 0
     return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
 def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsertLen):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
-    # insertAlns = sorted(list(insAlns), key=attrgetter("queryStart"))
+    insertAlns = list(insAlns)
     if len(alns) < 2:
         return None
 
@@ -42,13 +42,13 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
     downstreamAln = None
     checkRange = range(peakStart, peakEnd)
     for aln in alns:
-        if aln.refName == peakChr and aln.refEnd in checkRange:
+        if upstreamAln is None and aln.refName == peakChr and aln.refEnd in checkRange:
             if downstreamAln is None:
                 upstreamAln = aln
                 checkRange = range(aln.refEnd-shift, aln.refEnd+shift)
             elif aln.queryStrand == downstreamAln.queryStrand:
                 upstreamAln = aln
-        if aln.refName == peakChr and aln.refStart in checkRange:
+        if downstreamAln is None and aln.refName == peakChr and aln.refStart in checkRange:
             if upstreamAln is None:
                 downstreamAln = aln
                 checkRange = range(aln.refStart-shift, aln.refStart+shift)
@@ -59,14 +59,23 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             insertQueryStart = min(upstreamAln.queryEnd, downstreamAln.queryEnd)
             insertQueryEnd = max(upstreamAln.queryStart, downstreamAln.queryStart)
             insertLen = 0
-            for insertAln in insAlns:
-                insertLen += operlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+            for insertAln in insertAlns:
+                insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
             if insertLen >= minInsertLen:
                 return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
-                upstreamAln = None
-                downstreamAln = None
-                checkRange = range(peakStart, peakEnd+1)
+                checkRange = range(peakStart, peakEnd)
+                if aln.refEnd in checkRange and downstreamAln is aln:
+                    upstreamAln = aln
+                    downstreamAln = None
+                    checkRange = range(aln.refEnd-shift, aln.refEnd+shift)
+                elif aln.refStart in checkRange and upstreamAln is aln:
+                    downstreamAln = aln
+                    upstreamAln = None
+                    checkRange = range(aln.refStart-shift, aln.refStart+shift)
+                else:
+                    upstreamAln = None
+                    downstreamAln = None
     return None
 
 def validate(*params):
