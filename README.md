@@ -1,4 +1,4 @@
-# Caspeak
+# CasPeak
 
 This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
 
