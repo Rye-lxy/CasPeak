@@ -37,7 +37,6 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
     if len(alns) < 2:
         return None
 
-    shift = 30
     upstreamAln = None
     downstreamAln = None
     checkRange = range(peakStart, peakEnd)
@@ -45,13 +44,11 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
         if upstreamAln is None and aln.refName == peakChr and aln.refEnd in checkRange:
             if downstreamAln is None:
                 upstreamAln = aln
-                checkRange = range(aln.refEnd-shift, aln.refEnd+shift)
             elif aln.queryStrand == downstreamAln.queryStrand:
                 upstreamAln = aln
         if downstreamAln is None and aln.refName == peakChr and aln.refStart in checkRange:
             if upstreamAln is None:
                 downstreamAln = aln
-                checkRange = range(aln.refStart-shift, aln.refStart+shift)
             elif aln.queryStrand == upstreamAln.queryStrand:
                 downstreamAln = aln
 
@@ -64,15 +61,12 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             if insertLen >= minInsertLen:
                 return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
-                checkRange = range(peakStart, peakEnd)
                 if aln.refEnd in checkRange and downstreamAln is aln:
                     upstreamAln = aln
                     downstreamAln = None
-                    checkRange = range(aln.refEnd-shift, aln.refEnd+shift)
                 elif aln.refStart in checkRange and upstreamAln is aln:
                     downstreamAln = aln
                     upstreamAln = None
-                    checkRange = range(aln.refStart-shift, aln.refStart+shift)
                 else:
                     upstreamAln = None
                     downstreamAln = None
@@ -93,7 +87,6 @@ def validate(*params):
     
     os.makedirs("result", exist_ok=True)
     resMaf = open("result/validate.maf", "w")
-    # resPeak = open("result/validate.peak.bed", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
     if args.vcf:
         resVcf = open("result/validate.vcf", "w")
@@ -136,7 +129,6 @@ def validate(*params):
 
         alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
         print("\n".join(alignValidMaf), file=resMaf, end="\n")
-        # print(peak, file=resPeak, end="\n")
         
         if args.vcf:
             assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
