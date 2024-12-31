@@ -43,7 +43,7 @@ def peakAnalyze(args):
     # run bedtools for sorting can calculating coverage
     sortedBed = subprocess.run(["bedtools", "sort", "-i", "-"], capture_output=True, check=True,
                                input="".join(str(aln) for aln in genomeAlignments.values()).encode()).stdout
-    genomeCov = subprocess.run(["bedtools", "genomecov", "-bg", "-i", "-", "-g", args.bedtools_genome], capture_output=True, check=True,
+    genomeCov = subprocess.run(["bedtools", "genomecov", "-bga", "-i", "-", "-g", args.bedtools_genome], capture_output=True, check=True,
                                input=sortedBed).stdout.decode().rstrip()
 
     bedFile = open("peak/sorted.bed", "w")
@@ -52,7 +52,7 @@ def peakAnalyze(args):
 
     # find peaks and store in bed format for bedtools
     peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 
-               for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, args.min_width)]
+               for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov)]
     
     # prepare the validate lastdb here to avoid replicate parameters
     os.makedirs("lastdb", exist_ok=True)

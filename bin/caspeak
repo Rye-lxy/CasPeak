@@ -46,10 +46,8 @@ def addreadsGroup(parser: argparse.ArgumentParser):
     
 def addpeakGroup(parser: argparse.ArgumentParser):
     peakGroup = parser.add_argument_group("parameters for peak detection")
-    peakGroup.add_argument("--min-cov", type=int, default=1, metavar="NUM",
+    peakGroup.add_argument("--min-cov", type=int, default=2, metavar="NUM",
                            help="minimum coverage for a peak (default: %(default)s)")
-    peakGroup.add_argument("--min-width", type=int, default=200,metavar="NUM", 
-                           help="minimum width for a peak (default: %(default)s)")
     
 def addValidGroup(parser: argparse.ArgumentParser):
     validGroup = parser.add_argument_group("parameters for validation")
