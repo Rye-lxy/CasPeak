@@ -39,20 +39,25 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
 
     upstreamAln = None
     downstreamAln = None
+    pairedAlnsFwd = [None, None]
+    pairedAlnsRev = [None, None]
     checkRange = range(peakStart, peakEnd)
     for aln in alns:
-        if upstreamAln is None and aln.refName == peakChr and aln.refEnd in checkRange:
-            if downstreamAln is None:
-                upstreamAln = aln
-            elif aln.queryStrand == downstreamAln.queryStrand:
-                upstreamAln = aln
-        if downstreamAln is None and aln.refName == peakChr and aln.refStart in checkRange:
-            if upstreamAln is None:
-                downstreamAln = aln
-            elif aln.queryStrand == upstreamAln.queryStrand:
-                downstreamAln = aln
+        if aln.refName == peakChr and aln.refEnd in checkRange:
+            if aln.queryStrand == "+":
+                pairedAlnsFwd[0] = aln
+            else:
+                pairedAlnsRev[0] = aln
+        if aln.refName == peakChr and aln.refStart in checkRange:
+            if aln.queryStrand == "+":
+                pairedAlnsFwd[1] = aln
+            else:
+                pairedAlnsRev[1] = aln
 
-        if upstreamAln and downstreamAln:
+        if None not in pairedAlnsFwd:
+            upstreamAln = pairedAlnsFwd[0]
+            downstreamAln = pairedAlnsFwd[1]
+
             insertQueryStart = min(upstreamAln.queryEnd, downstreamAln.queryEnd)
             insertQueryEnd = max(upstreamAln.queryStart, downstreamAln.queryStart)
             insertLen = 0
@@ -61,15 +66,30 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             if insertLen >= minInsertLen:
                 return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
+                pairedAlnsFwd = [None, None]
                 if aln.refEnd in checkRange and downstreamAln is aln:
-                    upstreamAln = aln
-                    downstreamAln = None
+                    pairedAlnsFwd[0] = aln
                 elif aln.refStart in checkRange and upstreamAln is aln:
-                    downstreamAln = aln
-                    upstreamAln = None
-                else:
-                    upstreamAln = None
-                    downstreamAln = None
+                    pairedAlnsFwd[1] = aln
+        
+        if None not in pairedAlnsRev:
+            upstreamAln = pairedAlnsRev[0]
+            downstreamAln = pairedAlnsRev[1]
+
+            insertQueryStart = min(upstreamAln.queryEnd, downstreamAln.queryEnd)
+            insertQueryEnd = max(upstreamAln.queryStart, downstreamAln.queryStart)
+            insertLen = 0
+            for insertAln in insertAlns:
+                insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+            if insertLen >= minInsertLen:
+                return upstreamAln.refStart, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
+            else:
+                pairedAlnsRev = [None, None]
+                if aln.refEnd in checkRange and downstreamAln is aln:
+                    pairedAlnsRev[0] = aln
+                elif aln.refStart in checkRange and upstreamAln is aln:
+                    pairedAlnsRev[1] = aln
+
     return None
 
 def validate(*params):
