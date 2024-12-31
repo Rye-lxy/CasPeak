@@ -95,8 +95,7 @@ caspeak plot --maf peak/validate.maf
 | `--max-trim-length` <INT\> | Specify the maximum length N to be trimmed before the first alignment to in insert sequence (default: 100). Reads with distance between the first base and the the first alignment longer than N will be filtered out. |
 | `--padding` <INT\> | Specify the padding size of the target region (default: 20). This option enables the reads that are not exactly targeted. |
 ||**Parameters for peak detection**|
-| `--min-cov` <INT\> | Specify the minimum coverage to be considered in peak detection (default: 10). |
-| `--min-width` <INT\> | Specify the minimum width of a peak (default: 300). |
+| `--min-cov` <INT\> | Specify the minimum coverage to be considered in peak detection (default: 2). |
 ### valid
 
 `caspeak valid` validates peaks listed in BED format. For each peak, `caspeak valid` collects the reads involved, assembles them by [lamassemble](https://gitlab.com/mcfrith/lamassemble), and re-aligns the assembly sequence to validate whether the peak indicates a real non-reference insertion. And it generates the final result to *result* dir only in MAF format if `--vcf` is ignored.
@@ -164,9 +163,6 @@ caspeak plot --maf peak/validate.maf
     </tr>
     <tr>
         <td><code>--min-cov</code></td>
-    </tr>
-    <tr>
-        <td><code>--min-width</code></td>
     </tr>
     <tr>
         <td><code>--sample</code></td>
