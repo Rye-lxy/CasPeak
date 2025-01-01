@@ -112,49 +112,53 @@ def validate(*params):
         resVcf = open("result/validate.vcf", "w")
         print(vcfHeader(), file=resVcf, end="\n")
 
-    count = 1
-    for peak in peaks:
-        peakChr, peakStart, peakEnd, _, _ = peak.split()
+    try:
+        count = 1
+        for peak in peaks:
+            peakChr, peakStart, peakEnd, _, _ = peak.split()
 
-        peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
-                                     input=peak.encode()).stdout.decode().rstrip().split("\n")
-        seqNames = set(x.split("\t")[3] for x in peakBedData)
+            peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
+                                        input=peak.encode()).stdout.decode().rstrip().split("\n")
+            seqNames = set(x.split("\t")[3] for x in peakBedData)
 
-        upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
-        downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
+            upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
+            downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
-        if not upstreamReads or not downstreamReads:
-            continue
+            if not upstreamReads or not downstreamReads:
+                continue
 
-        assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-P", str(args.thread), "-"], 
-                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
-                                   stdin=assembleProc.stdout, stdout=subprocess.PIPE)
-        assembleProc.stdout.close()
-        for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
-            assembleProc.stdin.write(seq.encode())
-        assembleProc.stdin.close()
+            assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-P", str(args.thread), "-"], 
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
+                                    stdin=assembleProc.stdout, stdout=subprocess.PIPE)
+            assembleProc.stdout.close()
+            for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
+                assembleProc.stdin.write(seq.encode())
+            assembleProc.stdin.close()
 
-        assemblyFasta, _ = sedProc.communicate()
+            assemblyFasta, _ = sedProc.communicate()
 
-        alignValidMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
-                                    input=assemblyFasta).stdout.decode().split("\n")
+            alignValidMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
+                                        input=assemblyFasta).stdout.decode().split("\n")
 
-        alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
-                                     input=assemblyFasta).stdout.decode().split("\n")
+            alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
+                                        input=assemblyFasta).stdout.decode().split("\n")
 
-        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)
-        if vcfData is None:
-            continue
+            vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)
+            if vcfData is None:
+                continue
 
-        alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
-        print("\n".join(alignValidMaf), file=resMaf, end="\n")
-        
-        if args.vcf:
-            assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
-            print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=resVcf, end="\n")
-        
-        count += 1
+            alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
+            print("\n".join(alignValidMaf), file=resMaf, end="\n")
+            
+            if args.vcf:
+                assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
+                print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=resVcf, end="\n")
+            
+            count += 1
 
-    resMaf.close()
-    if args.vcf: resVcf.close()
+        resMaf.close()
+        if args.vcf: resVcf.close()
+    except subprocess.CalledProcessError as e:
+        print(e.stderr.decode(), file=sys.stderr)
+        exit(1)
