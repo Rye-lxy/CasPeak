@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-def peakDetect(bedgraph, minCov):
+def peakDetect(bedgraph, minCov, genome):
     peakChr = None
     peakStart = None
     peakEnd = None
@@ -17,7 +17,7 @@ def peakDetect(bedgraph, minCov):
         if cov == 0:
             if peakChr is not None and peakCov >= minCov:
                 mid = (peakStart + peakEnd) // 2
-                yield peakChr, max(peakStart, mid - 200), min(peakEnd, mid + 200), peakCov
+                yield peakChr, max(0, mid - 200), min(genome[peakChr], mid + 200), peakCov
             peakChr = None
             peakStart = None
             peakEnd = None
@@ -32,7 +32,7 @@ def peakDetect(bedgraph, minCov):
         elif peakChr != chr:
             if peakCov >= minCov:
                 mid = (peakStart + peakEnd) // 2
-                yield peakChr, max(peakStart, mid - 200), min(peakEnd, mid + 200), peakCov
+                yield peakChr, max(0, mid - 200), min(genome[peakChr], mid + 200), peakCov
             peakChr = chr
             peakStart = start
             peakEnd = end
@@ -45,7 +45,7 @@ def peakDetect(bedgraph, minCov):
     
     if peakChr is not None and peakCov >= minCov:
         mid = (peakStart + peakEnd) // 2
-        yield peakChr, max(peakStart, mid - 200), min(peakEnd, mid + 200), peakCov
+        yield peakChr, max(0, mid - 200), min(genome[peakChr], mid + 200), peakCov
 
 
 if __name__ == "__main__":

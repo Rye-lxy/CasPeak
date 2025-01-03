@@ -63,4 +63,11 @@ def fastaReader(lines):
     if title:
         yield title, "".join(seq)
 
-
+def genomeReader(lines):
+    genome = {}
+    for line in lines:
+        fields = line.rstrip().split()
+        if not fields:
+            continue
+        genome[fields[0]] = int(fields[1])
+    return genome

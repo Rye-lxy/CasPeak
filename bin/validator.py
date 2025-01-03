@@ -114,6 +114,7 @@ def validate(*params):
 
     try:
         count = 1
+        last = None
         for peak in peaks:
             peakChr, peakStart, peakEnd, _, _ = peak.split()
 
@@ -147,6 +148,12 @@ def validate(*params):
             vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)
             if vcfData is None:
                 continue
+
+            if last is None:
+                last = (peakChr, vcfData[0])
+            elif last[0] == peakChr and abs(vcfData[0] - last[1]) < 50:
+                continue
+            last = (peakChr, vcfData[0])
 
             alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
             print("\n".join(alignValidMaf), file=resMaf, end="\n")

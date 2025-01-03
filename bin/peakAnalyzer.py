@@ -53,7 +53,7 @@ def peakAnalyze(args):
 
         # find peaks and store in bed format for bedtools
         peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 
-                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov)]
+                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, genomeReader(openFile(args.bedtools_genome)))]
         
         # prepare the validate lastdb here to avoid replicate parameters
         os.makedirs("lastdb", exist_ok=True)
