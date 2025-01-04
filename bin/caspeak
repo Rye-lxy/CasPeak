@@ -13,7 +13,7 @@ from plotter import lastDotplot
 def addBasicArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--read", required=True, metavar="FILE", help="the read FASTA/FATSQ file (required)")
     parser.add_argument("--ref", required=True, metavar="FILE", help="the reference genome FASTA file (required)")
-    parser.add_argument("--insert", required=True, metavar="FILE", help="insert consensus sequence FASTA file (required)")
+    parser.add_argument("--insert", required=True, metavar="FILE", help="consensus sequence of the MEI FASTA file (required)")
 
 def addSharedArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--workdir", default=os.getcwd(), metavar="DIR", help="working directory (default: current directory)")
@@ -53,8 +53,8 @@ def addValidGroup(parser: argparse.ArgumentParser):
     validGroup = parser.add_argument_group("parameters for validation")
     validGroup.add_argument("--sample", type=int, default=20, metavar="N",
                             help="at most N reads are selected for assembly (default: %(default)s)")
-    validGroup.add_argument("--min-insert", type=int, default=200, metavar="NUM",
-                            help="minimum length of the insert sequence (default: %(default)s)")
+    validGroup.add_argument("--min-insert", type=int, default=0.5, metavar="NUM",
+                            help="minimum proportion of the MEI in the insert sequence (default: %(default)s)")
     validGroup.add_argument("--vcf", action="store_true", help="output the validated result in VCF format")
 
 def softwareCheck():
@@ -158,8 +158,8 @@ if __name__ == "__main__":
 
     # valid subcommand
     valid_parser = subparsers.add_parser("valid", help="Validate peaks and output the final result")
-    valid_parser.add_argument("--trim-read", required=True, metavar="FILE", help="read FASTA file after trimming (required)")
-    valid_parser.add_argument("--peak-bed", required=True, metavar="FILE", help="peak BED file (required)")
+    valid_parser.add_argument("--trim-read", default="peak/trimmed_reads.fasta", metavar="FILE", help="read FASTA file after trimming (default: %(default)s)")
+    valid_parser.add_argument("--peak-bed", default="peak/peaks.bed", metavar="FILE", help="peak BED file (default: %(default)s)")
     addSharedArgs(valid_parser)
     addValidGroup(valid_parser)
     valid_parser.set_defaults(func=execValid)

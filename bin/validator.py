@@ -31,7 +31,7 @@ def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
         return 0
     return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
-def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsertLen):
+def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsertProp):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
     insertAlns = list(insAlns)
     if len(alns) < 2:
@@ -63,7 +63,7 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             insertLen = 0
             for insertAln in insertAlns:
                 insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
-            if insertLen >= minInsertLen:
+            if insertLen > 0 and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
                 return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
                 pairedAlnsFwd = [None, None]
@@ -81,7 +81,7 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             insertLen = 0
             for insertAln in insertAlns:
                 insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
-            if insertLen >= minInsertLen:
+            if insertLen > 0 and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
                 return upstreamAln.refStart, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
                 pairedAlnsRev = [None, None]
