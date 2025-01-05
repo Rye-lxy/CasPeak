@@ -3,7 +3,16 @@
 This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
 
 ## Installation
+You can download and install CasPeak from github by the following commands:
+```
+git clone https://github.com/Rye-lxy/CasPeak.git
 
+cd CasPeak
+
+echo export PATH=$(pwd):'$PATH' >> ~/.bashrc
+
+source ~/.bashrc
+```
 
 ## Usage
 `caspeak` consists of several subcommands listed as follows:
