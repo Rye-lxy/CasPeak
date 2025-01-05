@@ -4,8 +4,8 @@ from operator import attrgetter
 import os
 import subprocess
 
-from fileReader import *
-from vcfFormatter import *
+from .fileReader import *
+from .vcfFormatter import *
 
 def preAssembler(up, down, sample):
     count = 1

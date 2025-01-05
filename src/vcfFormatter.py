@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from trimmer import reverseComplement
+from .trimmer import reverseComplement
 
 def vcfHeader():
     return f"""##fileformat=VCFv4.2

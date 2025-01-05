@@ -18,7 +18,7 @@ from operator import itemgetter
 import subprocess
 import itertools, optparse, os, re, sys
 
-from fileReader import openFile
+from .fileReader import openFile
 
 # Try to make PIL/PILLOW work:
 try:

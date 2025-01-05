@@ -2,7 +2,7 @@
 
 import sys
 import gzip
-from Alignment import Alignment
+from .Alignment import Alignment
 
 def openFile(fileName):
     if fileName is None:

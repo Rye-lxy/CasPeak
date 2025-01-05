@@ -4,7 +4,7 @@
 import os
 import subprocess
 
-from fileReader import *
+from .fileReader import *
 
 def aligner(args):
     # args: read, ref, insert, thread

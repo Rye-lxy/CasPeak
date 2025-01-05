@@ -5,10 +5,10 @@ import os
 import shutil
 import sys
 
-from aligner import aligner
-from peakAnalyzer import peakAnalyze
-from validator import validate
-from plotter import lastDotplot
+from src.aligner import aligner
+from src.peakAnalyzer import peakAnalyze
+from src.validator import validate
+from src.plotter import lastDotplot
 
 def addBasicArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--read", required=True, metavar="FILE", help="the read FASTA/FATSQ file (required)")

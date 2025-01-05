@@ -5,10 +5,10 @@ import os
 import shutil
 import subprocess
 
-from fileReader import *
-from alignmentFilter import *
-from trimmer import *
-from peakDetector import *
+from .fileReader import *
+from .alignmentFilter import *
+from .trimmer import *
+from .peakDetector import *
 
 
 def peakAnalyze(args):
