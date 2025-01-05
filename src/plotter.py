@@ -12,7 +12,6 @@
 
 import collections
 import functools
-import gzip
 from fnmatch import fnmatchcase
 import logging
 from operator import itemgetter

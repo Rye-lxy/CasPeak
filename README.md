@@ -2,6 +2,9 @@
 
 This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
 
+## Installation
+
+
 ## Usage
 `caspeak` consists of several subcommands listed as follows:
 * [align](#align)
@@ -24,10 +27,12 @@ Before running caspeak, you need to prepare the following required input file in
 * the reference genome (e.g. GRCh38),
 * the consensus sequence of the mobile element.
 
-And of course, you should know the where the Cas9 target site is in the consensus sequence.
+And of course, you should know the location of the Cas9 target site in the consensus sequence.
 
 Then, you can run `align`, `peak`, and `valid` sequentially like this script:
 ```
+cd /your/work/dir
+
 caspeak align \
     --read /path/to/read.fa.gz \
     --ref /path/to/reference.fa \
@@ -40,9 +45,7 @@ caspeak peak \
     --target-start <NUM> \
     --target-end <NUM>
 
-caspeak valid \
-    --trim-read peak/trimmed_reads.fasta \
-    --peak-bed peak/peaks.bed \
+caspeak valid
 ```
 If you don't care about the intermediate files and procedures, `exec` subcommand provides a shortcut containing all the functions for you:
 ```
