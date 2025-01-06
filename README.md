@@ -3,6 +3,8 @@
 This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
 
 ## Installation
+To execute CasPeak, [bedtools](https://bedtools.readthedocs.io/en/latest/content/installation.html), [LAST](https://gitlab.com/mcfrith/last/-/tree/main), and [lamassemble](https://gitlab.com/mcfrith/lamassemble) are required in your `PATH` environment variable.
+
 You can download and install CasPeak from github by the following commands:
 ```
 git clone https://github.com/Rye-lxy/CasPeak.git
