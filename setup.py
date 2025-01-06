@@ -1,9 +1,7 @@
 import setuptools
 
-
 commitInfo = "$Format:%d$".strip("( )").split()
 version = commitInfo[commitInfo.index("tag:") + 1].rstrip(",")
-# version = "1.0.0"
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
