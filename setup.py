@@ -1,7 +1,9 @@
 import setuptools
 
+version = "1.0.0"
 commitInfo = "$Format:%d$".strip("( )").split()
-version = commitInfo[commitInfo.index("tag:") + 1].rstrip(",")
+if commitInfo:
+    version = commitInfo[commitInfo.index("tag:") + 1].rstrip(",")
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -14,7 +16,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Rye-lxy/CasPeak",
     author="Xinyi Liu",
-    install_requires=["pillow"],
+    install_requires=[
+        "pillow", 
+        "setuptools",
+    ],
     classifiers=[
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
