@@ -13,7 +13,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Rye-lxy/CasPeak",
     author="Xinyi Liu",
-    install_requires=["pillow",],
+    packages=["src"],
+    install_requires=["pillow"],
     classifiers=[
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
