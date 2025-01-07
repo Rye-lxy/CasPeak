@@ -1,6 +1,12 @@
 # CasPeak
-
 This is a pipeline for finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection.
+
+## Installation
+You can install CasPeak (together with all requirements) from [Bioconda](https://bioconda.github.io/):
+```
+conda install -c bioconda caspeak
+```
+You can also download source code by `git clone` (latest version) or from [release](https://github.com/Rye-lxy/CasPeak/releases).
 
 ## Usage
 `caspeak` consists of several subcommands listed as follows:
