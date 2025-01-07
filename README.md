@@ -123,7 +123,7 @@ caspeak plot --maf peak/validate.maf
     </tr>
     <tr>
         <td><code>--read</code></td>
-        <td rowspan="17">See <a href="#peak">peak options</a>.</td>
+        <td rowspan="16">See <a href="#peak">peak options</a>.</td>
     </tr>
     <tr>
         <td><code>--ref</code></td>
