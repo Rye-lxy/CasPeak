@@ -9,14 +9,14 @@ conda install -c bioconda caspeak
 You can also download source code by `git clone` (latest version) or from [release](https://github.com/Rye-lxy/CasPeak/releases).
 
 ## Usage
-`caspeak` consists of several subcommands listed as follows:
+`caspeak` consists of several subcommands:
 * [align](#align)
 * [peak](#peak)
 * [valid](#valid)
 * [exec](#exec)
 * [plot](#plot)
 
-You can use `caspeak` as follows:
+You can use `caspeak` like:
 ```
 caspeak [subcommand] [options]
 ```
