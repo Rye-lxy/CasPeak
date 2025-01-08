@@ -82,7 +82,7 @@ def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsert
             for insertAln in insertAlns:
                 insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
             if insertLen > 0 and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
-                return upstreamAln.refStart, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
+                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
             else:
                 pairedAlnsRev = [None, None]
                 if aln.refEnd in checkRange and downstreamAln is aln:
