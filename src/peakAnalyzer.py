@@ -10,13 +10,14 @@ from .alignmentFilter import *
 from .trimmer import *
 from .peakDetector import *
 
-
 def peakAnalyze(args):
     # args: read, ref, insert, genome_maf, insert_maf, target_start, target_end, exog, thread, bedtools_genome, mask
     # min_read_length, max_prop, min_prop, max_trim_length, padding, min_cov, min_width, 
     os.makedirs("peak", exist_ok=True)
 
     _, insertSeq = next(fastaReader(openFile(args.insert)))
+
+    genome = genomeReader(openFile(args.bedtools_genome))
 
     insertAlignments = dict((name, sorted(list(alns), key=attrgetter("queryStart"))) 
                             for name, alns in itertools.groupby(mafReader(openFile(args.insert_maf)), key=attrgetter("queryName")))
@@ -25,7 +26,8 @@ def peakAnalyze(args):
                                                   minReadLen=args.min_read_length,
                                                   maxProp=args.max_prop,
                                                   minProp=args.min_prop,
-                                                  exogenous=args.exog))
+                                                  exogenous=args.exog,
+                                                  genomeList=genome.keys()))
 
     trimmedReads = dict(sequenceTrimmer(fastaReader(openFile(args.read)), 
                                         insertAlignments, 
@@ -53,7 +55,7 @@ def peakAnalyze(args):
 
         # find peaks and store in bed format for bedtools
         peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 
-                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, genomeReader(openFile(args.bedtools_genome)))]
+                for name, start, end, cov in peakDetect(genomeCov.split("\n"), args.min_cov, genome)]
         
         # prepare the validate lastdb here to avoid replicate parameters
         os.makedirs("lastdb", exist_ok=True)

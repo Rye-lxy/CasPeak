@@ -68,20 +68,54 @@ def softwareCheck():
         print("last is not found in PATH", file=sys.stderr)
         exit(1)
 
-def checkWorkdir(args):   
+def workdirCheck(args):   
     os.makedirs(args.workdir, exist_ok=True)
     os.chdir(args.workdir)
 
+def basicFileCheck(args):
+    if not os.path.exists(args.read):
+        print(f"{args.read} is not found", file=sys.stderr)
+        exit(1)
+    if not os.path.exists(args.ref):
+        print(f"{args.ref} is not found", file=sys.stderr)
+        exit(1)
+    if not os.path.exists(args.insert):
+        print(f"{args.insert} is not found", file=sys.stderr)
+        exit(1)
+
+def peakFileCheck(args):
+    if not os.path.exists(args.genome_maf):
+        print(f"{args.genome_maf} is not found", file=sys.stderr)
+        exit(1)
+    if not os.path.exists(args.insert_maf):
+        print(f"{args.insert_maf} is not found", file=sys.stderr)
+        exit(1)
+    if not os.path.exists(args.bedtools_genome):
+        print(f"{args.bedtools_genome} is not found", file=sys.stderr)
+        exit(1)
+
+def validFileCheck(args):
+    if not os.path.exists(args.trim_read):
+        print(f"{args.trim_read} is not found", file=sys.stderr)
+        exit(1)
+    if not os.path.exists(args.peak_bed):
+        print(f"{args.peak_bed} is not found", file=sys.stderr)
+        exit(1)
+
 def execAlign(args):
     softwareCheck()
-    checkWorkdir(args)
+    workdirCheck(args)
+    basicFileCheck(args)
     aligner(args)
 
 def execPeak(args):
     softwareCheck()
+    workdirCheck(args)
+
     if not args.bedtools_genome:
         args.bedtools_genome = "/".join(shutil.which("bedtools").split("/")[:-2] + ["genomes", "human.hg38.genome"])
-    checkWorkdir(args)
+    basicFileCheck(args)
+    peakFileCheck(args)
 
     trimmedReads, peaks = peakAnalyze(args)
 
@@ -97,19 +131,23 @@ def execPeak(args):
 
 def execValid(args):
     softwareCheck()
-    checkWorkdir(args)
+    workdirCheck(args)
+    validFileCheck(args)
     validate(args)
 
 def execAllSteps(args):
     softwareCheck()
-    if not args.bedtools_genome:
-        args.bedtools_genome = "/".join(shutil.which("bedtools").split("/")[:-2] + ["genomes", "human.hg38.genome"])
-    checkWorkdir(args)
+    workdirCheck(args)
+    basicFileCheck(args)
 
     aligner(args)
 
+    if not args.bedtools_genome:
+        args.bedtools_genome = "/".join(shutil.which("bedtools").split("/")[:-2] + ["genomes", "human.hg38.genome"])
     args.genome_maf = "lastal/read_to_ref.maf"
     args.insert_maf = "lastal/read_to_insert.maf"
+    peakFileCheck(args)
+
     trimmedReads, peaks = peakAnalyze(args)
     trimmedReadsFile = open("peak/trimmed_reads.fasta", "w")
     for name, seqInfo in trimmedReads.items():
@@ -148,8 +186,8 @@ if __name__ == "__main__":
     peak_parser = subparsers.add_parser("peak", help="Detect coverage peaks from the alignment files")
     addBasicArgs(peak_parser)
     addPeakArgs(peak_parser)
-    peak_parser.add_argument("--genome-maf", default="lastal/read_to_ref.maf", metavar="MAF", help="alignment to the genome (default: %(default)s)")
-    peak_parser.add_argument("--insert-maf", default="lastal/read_to_insert.maf", metavar="MAF", help="alignment to the insertion sequence (default: %(default)s)")
+    peak_parser.add_argument("--genome-maf", default="./lastal/read_to_ref.maf", metavar="MAF", help="alignment to the genome (default: %(default)s)")
+    peak_parser.add_argument("--insert-maf", default="./lastal/read_to_insert.maf", metavar="MAF", help="alignment to the insertion sequence (default: %(default)s)")
     addSharedArgs(peak_parser)
     addfilterGroup(peak_parser)
     addreadsGroup(peak_parser)
@@ -158,8 +196,8 @@ if __name__ == "__main__":
 
     # valid subcommand
     valid_parser = subparsers.add_parser("valid", help="Validate peaks and output the final result")
-    valid_parser.add_argument("--trim-read", default="peak/trimmed_reads.fasta", metavar="FILE", help="read FASTA file after trimming (default: %(default)s)")
-    valid_parser.add_argument("--peak-bed", default="peak/peaks.bed", metavar="FILE", help="peak BED file (default: %(default)s)")
+    valid_parser.add_argument("--trim-read", default="./peak/trimmed_reads.fasta", metavar="FILE", help="read FASTA file after trimming (default: %(default)s)")
+    valid_parser.add_argument("--peak-bed", default="./peak/peaks.bed", metavar="FILE", help="peak BED file (default: %(default)s)")
     addSharedArgs(valid_parser)
     addValidGroup(valid_parser)
     valid_parser.set_defaults(func=execValid)
