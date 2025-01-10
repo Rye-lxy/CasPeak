@@ -112,7 +112,7 @@ caspeak plot --maf peak/validate.maf
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 | `--sample` <INT\> | Specify that at most N pairs of reads are assembled (default: 20). |
-| `--min-insert` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.5). |
+| `--min-insert` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.5). That is, at least half of the insert sequence should derive from the mobile element by default. |
 | `--vcf` | Indicate an extra output in VCF format. |
 ### exec
 `caspeak exec` actually provided a shortcut and wrapper for `caspeak align`, `caspeak peak` and `caspeak valid`. It improves speed by skipping several I/O operations.
