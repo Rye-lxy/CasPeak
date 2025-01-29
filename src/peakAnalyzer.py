@@ -84,6 +84,6 @@ def peakAnalyze(args):
                                 input="\n".join(peakBed).encode()).stdout.decode().rstrip()
 
         return trimmedReads, peaks
-    except subprocess.CalledProcessError as e:
-        print(e.stderr.decode(), file=sys.stderr)
+    except subprocess.CalledProcessError:
+        print("Error in peak detection", file=sys.stderr)
         exit(1)

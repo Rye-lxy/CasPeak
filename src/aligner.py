@@ -19,6 +19,6 @@ def aligner(args):
         with open("lastal/read_to_insert.maf", "w") as f:
             subprocess.check_call(f"last-train -P{args.thread} -Q0 lastdb/insert {args.read} | lastal -P{args.thread} --split -p - lastdb/insert {args.read}", 
                                 stdout=f, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(e.stderr.decode(), file=sys.stderr)
+    except subprocess.CalledProcessError:
+        print("Error in alignment", file=sys.stderr)
         exit(1)
