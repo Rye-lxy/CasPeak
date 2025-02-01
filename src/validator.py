@@ -129,6 +129,9 @@ def validate(*params):
         upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
         downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
+        if args.test:
+            print(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads", file=sys.stdout)
+
         if not upstreamReads or not downstreamReads:
             continue
         upstreamReads.sort(key=lambda x: len(x[1]), reverse=True)
@@ -164,6 +167,9 @@ def validate(*params):
         except subprocess.CalledProcessError:
             print("Error in peak validation", file=sys.stderr)
             exit(1)
+
+        if args.test:
+            print("\n".join(alignValidMaf), file=sys.stdout)
 
         vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)        
         if vcfData is None:
