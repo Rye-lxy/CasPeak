@@ -67,7 +67,7 @@ def peakAnalyze(args):
                 if shutil.which("seg-import") is None:
                     print("seg-import is not found in PATH", file=sys.stderr)
                     exit(1)
-                subprocess.check_call(f"seg-import rmsk {args.mask} | seg-mask -c - {args.ref} | lastdb -P{args.thread} -uRY4 -R11 -c lastdb/validate - {args.insert}", shell=True)
+                subprocess.check_call(f"seg-import rmsk {args.mask} | seg-mask - {args.ref} | lastdb -P{args.thread} -uRY4 -R11 -c lastdb/validate - {args.insert}", shell=True)
             else:
                 # copy the reference lastdb to validate
                 for file in os.listdir("lastdb"):

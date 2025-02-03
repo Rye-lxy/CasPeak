@@ -34,10 +34,10 @@ def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp, exogeno
             continue
 
         maxAln = max(joinedAlns, key = lambda x: x.getRefLength())
-        maxRefLength = maxAln.getRefLength()
-        if maxRefLength / length >= maxProp or maxRefLength / length < minProp:
+        maxAlnLength = maxAln.getQueryLength()
+        if maxAlnLength / length >= maxProp or maxAlnLength / length <= minProp:
             continue
-        if length - maxRefLength < 100:
+        if length - maxAlnLength < 100:
             continue
         
         maxAln.shrink(toLength=200)

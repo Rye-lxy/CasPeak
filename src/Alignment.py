@@ -19,6 +19,9 @@ class Alignment:
     def getRefLength(self):
         return self.refEnd - self.refStart
 
+    def getQueryLength(self):
+        return self.queryEnd - self.queryStart
+
     def join(self, other, refGap, queryGap):
         # join two alignments if they are co-linear (probably with small indels but no overlap)
         # return a new alignment object

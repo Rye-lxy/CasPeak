@@ -33,9 +33,9 @@ def addfilterGroup(parser: argparse.ArgumentParser):
     filterGroup = parser.add_argument_group("parameters for filtering reads")
     filterGroup.add_argument("--min-read-length", type=int, default=500, metavar="NUM",
                              help="minimum read length (default: %(default)s)")
-    filterGroup.add_argument("--max-prop", type=float, default=0.99, metavar="NUM",
+    filterGroup.add_argument("--max-prop", type=float, default=1, metavar="NUM",
                              help="maximum proportion of the read aligned to the reference genome (default: %(default)s)")
-    filterGroup.add_argument("--min-prop", type=float, default=0.4, metavar="NUM",
+    filterGroup.add_argument("--min-prop", type=float, default=0, metavar="NUM",
                             help="minimum proportion of the read aligned to the reference genome (default: %(default)s)")
     
 def addreadsGroup(parser: argparse.ArgumentParser):

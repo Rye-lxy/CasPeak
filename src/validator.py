@@ -9,20 +9,11 @@ from .vcfFormatter import *
 
 def preAssembler(up, down, sample):
     count = 1
-    while up or down and count <= sample:
-        if up and down:
-            upSeq = up.pop()
-            downSeq = down.pop()
-            title = f">{upSeq[0]}+{downSeq[0]}"
-            seq = upSeq[1] + downSeq[1]
-        elif up:
-            upSeq = up.pop()
-            title = f">{upSeq[0]}"
-            seq = upSeq[1]
-        else:
-            downSeq = down.pop()
-            title = f">{downSeq[0]}"
-            seq = downSeq[1]
+    while up and down and count <= sample:
+        upSeq = up.pop()
+        downSeq = down.pop()
+        title = f">{upSeq[0]}+{downSeq[0]}"
+        seq = upSeq[1] + downSeq[1]
         yield f"{title}\n{seq}\n"
         count += 1
 
@@ -113,6 +104,18 @@ def validate(*params):
         print(vcfHeader(), file=resVcf, end="\n")
 
     os.makedirs("tmp", exist_ok=True)
+    try:
+        with open("tmp/assembly.train", "w") as train:
+            assemTrainProc = subprocess.Popen(["last-train", f"-P{args.thread}", "-Q0", "lastdb/ref", "-"], check=True,
+                                            stdin=subprocess.PIPE, stdout=train)
+            for name, seqInfo in trimmedReads.items():
+                assemTrainProc.stdin.write(f">{name}\n{seqInfo[0]}\n".encode())
+            assemTrainProc.stdin.close()
+            assemTrainProc.communicate()
+    except subprocess.CalledProcessError:
+        print("Error in peak validation", file=sys.stderr)
+        exit(1)
+
     count = 1
     last = None
     for peak in peaks:
@@ -130,27 +133,30 @@ def validate(*params):
         downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
         if args.test:
-            print(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads", file=sys.stdout)
+            print(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads", file=sys.stderr)
 
         if not upstreamReads or not downstreamReads:
             continue
-        upstreamReads.sort(key=lambda x: len(x[1]), reverse=True)
-        downstreamReads.sort(key=lambda x: len(x[1]), reverse=True)
+        upstreamReads.sort(key=lambda x: len(x[1]))
+        downstreamReads.sort(key=lambda x: len(x[1]))
 
-        try:
-            assembleProc = subprocess.Popen(["lamassemble", "promethion-2019", "-n", f"peak{count}", "-P", str(args.thread), "-"], 
-                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
-                                    stdin=assembleProc.stdout, stdout=subprocess.PIPE)
-            assembleProc.stdout.close()
-            for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
-                assembleProc.stdin.write(seq.encode())
-            assembleProc.stdin.close()
+        if len(upstreamReads) == 1 or len(downstreamReads) == 1:
+            assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).encode()
+        else:
+            try:
+                assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
+                                                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
+                                        stdin=assembleProc.stdout, stdout=subprocess.PIPE)
+                assembleProc.stdout.close()
+                for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
+                    assembleProc.stdin.write(seq.encode())
+                assembleProc.stdin.close()
 
-            assemblyFasta, _ = sedProc.communicate()
-        except subprocess.CalledProcessError:
-            print("Error in peak validation", file=sys.stderr)
-            exit(1)
+                assemblyFasta, _ = sedProc.communicate()
+            except subprocess.CalledProcessError:
+                print("Error in peak validation", file=sys.stderr)
+                exit(1)
 
         try:
             with open("tmp/validate.train", "w") as train:
