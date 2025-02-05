@@ -106,7 +106,7 @@ def validate(*params):
     os.makedirs("tmp", exist_ok=True)
     try:
         with open("tmp/assembly.train", "w") as train:
-            assemTrainProc = subprocess.Popen(["last-train", f"-P{args.thread}", "-Q0", "lastdb/ref", "-"], check=True,
+            assemTrainProc = subprocess.Popen(["last-train", f"-P{args.thread}", "-Q0", "lastdb/ref", "-"],
                                             stdin=subprocess.PIPE, stdout=train)
             for name, seqInfo in trimmedReads.items():
                 assemTrainProc.stdin.write(f">{name}\n{seqInfo[0]}\n".encode())
