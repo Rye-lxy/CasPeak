@@ -141,7 +141,8 @@ def validate(*params):
         downstreamReads.sort(key=lambda x: len(x[1]))
 
         if len(upstreamReads) == 1 or len(downstreamReads) == 1:
-            assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).encode()
+            assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
+            assemblyFasta = f">peak{count}\n{assemblyFasta}\n".encode()
         else:
             try:
                 assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
