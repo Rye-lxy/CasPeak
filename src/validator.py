@@ -99,6 +99,7 @@ def validate(*params):
     os.makedirs("result", exist_ok=True)
     resMaf = open("result/validate.maf", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
+    resBed = open("result/validate.bed", "w")
     if args.vcf:
         resVcf = open("result/validate.vcf", "w")
         print(vcfHeader(), file=resVcf, end="\n")
@@ -119,7 +120,7 @@ def validate(*params):
     count = 1
     last = None
     for peak in peaks:
-        peakChr, peakStart, peakEnd, _, _ = peak.split()
+        peakChr, peakStart, peakEnd, _, peakCov = peak.split()
         try:
             peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
                                         input=peak.encode()).stdout.decode().rstrip().split("\n")
@@ -190,7 +191,9 @@ def validate(*params):
 
         alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
         print("\n".join(alignValidMaf), file=resMaf, end="\n")
-        
+
+        print(f"{peakChr}\t{peakStart}\t{peakEnd}\tpeak{count}\t{peakCov}", file=resBed, end="\n")
+
         if args.vcf:
             assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
             print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=resVcf, end="\n")
@@ -198,4 +201,5 @@ def validate(*params):
         count += 1
 
     resMaf.close()
+    resBed.close()
     if args.vcf: resVcf.close()
