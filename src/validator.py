@@ -100,6 +100,7 @@ def validate(*params):
     resMaf = open("result/validate.maf", "w")
     print("# caspeak validated", file=resMaf, end="\n\n")
     resBed = open("result/validate.bed", "w")
+    resFasta = open("result/validate.fasta", "w")
     if args.vcf:
         resVcf = open("result/validate.vcf", "w")
         print(vcfHeader(), file=resVcf, end="\n")
@@ -191,8 +192,8 @@ def validate(*params):
 
         alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
         print("\n".join(alignValidMaf), file=resMaf, end="\n")
-
         print(f"{peakChr}\t{peakStart}\t{peakEnd}\tpeak{count}\t{peakCov}", file=resBed, end="\n")
+        print(assemblyFasta.decode().rstrip(), file=resFasta, end="\n")
 
         if args.vcf:
             assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
@@ -202,4 +203,5 @@ def validate(*params):
 
     resMaf.close()
     resBed.close()
+    resFasta.close()
     if args.vcf: resVcf.close()
