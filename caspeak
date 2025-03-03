@@ -54,8 +54,12 @@ def addValidGroup(parser: argparse.ArgumentParser):
     validGroup = parser.add_argument_group("parameters for validation")
     validGroup.add_argument("--sample", type=int, default=20, metavar="N",
                             help="at most N reads are selected for assembly (default: %(default)s)")
-    validGroup.add_argument("--min-insert", type=int, default=0.2, metavar="NUM",
+    validGroup.add_argument("--min-insert", type=int, default=0.2, metavar="PROP",
                             help="minimum proportion of the MEI in the insert sequence (default: %(default)s)")
+    validGroup.add_argument("--lib", default=None, metavar="LIB", 
+                            help="the library (a set of closely related sequences) used to distinguish true insertion from these related sequences")
+    validGroup.add_argument("--names", action="append", metavar="NAME",
+                            help="names of the insertion sequence in the library (only required if lib is specified)")
     validGroup.add_argument("--vcf", action="store_true", help="output the validated result in VCF format")
 
 def softwareCheck():
@@ -103,6 +107,12 @@ def validFileCheck(args):
         print(f"{args.peak_bed} is not found", file=sys.stderr)
         exit(1)
 
+def libFileCheck(args):
+    if args.lib is not None:
+        if not os.path.exists(args.lib):
+            print(f"{args.lib} is not found", file=sys.stderr)
+            exit(1)
+
 def execAlign(args):
     softwareCheck()
     workdirCheck(args)
@@ -134,12 +144,14 @@ def execValid(args):
     softwareCheck()
     workdirCheck(args)
     validFileCheck(args)
+    libFileCheck(args)
     validate(args)
 
 def execAllSteps(args):
     softwareCheck()
     workdirCheck(args)
     basicFileCheck(args)
+    libFileCheck(args)
 
     aligner(args)
 
@@ -174,7 +186,8 @@ def execPlot(args):
     lastDotplot(args)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Caspeak: outer-Cas9 targeted nanopore sequencing analysis")
+    parser = argparse.ArgumentParser(description="%(prog)s: outer-Cas9 targeted nanopore sequencing analysis")
+    parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.1.0")
     subparsers = parser.add_subparsers(title="subcommands")
 
     # align subcommand
@@ -305,6 +318,10 @@ if __name__ == "__main__":
     plot_parser.set_defaults(func=execPlot)
 
     args = parser.parse_args()
+
+    if hasattr(args, "lib") and args.lib is not None:
+            if not hasattr(args, "names") or not args.names:
+                parser.error("--names is required when --lib is specified")
 
     if hasattr(args, "func"):
         args.func(args)

@@ -90,7 +90,7 @@ caspeak plot --maf peak/validate.maf
 | `--insert-maf` <FILE\> | The read alignment to the consensus sequence in MAF format. In general, `caspeak align` outputs it as *lastal/read_to_insert.maf* and it can also be ignored like `--genome-maf`. |
 | `--bedtools-genome` <FILE\> | A genome file passed to [`bedtools genomecov -g`](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html). In general, several genome files should be included in *genomes* dir under your path to `bedtools`, and *human.hg38.genome* will be used if you ignore this option. |
 | `-x`, `--exog` | Specify the mobile element as an exogenous element, which means there is no identical sequence in the reference genome. |
-| `--mask` <FILE\> | The region to be masked in either RepeatMasker .out format or UCSC's rmsk format. If the reads come from a repeat element (e.g. LINE1) insertion, it is recommended that an LINE1 annotation file should be specified. |
+| `--mask` <FILE\> | The region to be masked in either RepeatMasker .out format or UCSC's rmsk format. You can use it to make caspeak execute faster and control the number of false-positive cases, but the false-negative cases might be a bit more. |
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 ||**Parameters for filtering reads**|
@@ -112,7 +112,9 @@ caspeak plot --maf peak/validate.maf
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 | `--sample` <INT\> | Specify that at most N pairs of reads are assembled (default: 20). |
-| `--min-insert` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.5). That is, at least half of the insert sequence should derive from the mobile element by default. |
+| `--min-insert` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.2). That is, at least 20% of the insert sequence should derive from the mobile element by default. |
+| `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of the single mobile element sequence specified by `--insert` option in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. |
+| `--names` <NAME\>| In the LIB file, only the sequences specified here are treated as the real mobile element for `--min-insert` calculation. Multiple sequence names can be specified like `--names A --names B --names C`. |
 | `--vcf` | Indicate an extra output in VCF format. |
 ### exec
 `caspeak exec` actually provided a shortcut and wrapper for `caspeak align`, `caspeak peak` and `caspeak valid`. It improves speed by skipping several I/O operations.
@@ -172,10 +174,16 @@ caspeak plot --maf peak/validate.maf
     </tr>
     <tr>
         <td><code>--sample</code></td>
-        <td rowspan="3">See <a href="#valid">valid options</a>.</td>
+        <td rowspan="5">See <a href="#valid">valid options</a>.</td>
     </tr>
     <tr>
         <td><code>--min-insert</code></td>
+    </tr>
+    <tr>
+        <td><code>--lib</code></td>
+    </tr>
+    <tr>
+        <td><code>--names</code></td>
     </tr>
     <tr>
         <td><code>--vcf</code></td>

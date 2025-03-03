@@ -22,9 +22,8 @@ def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
         return 0
     return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
-def finalAlignmentCheck(refAlns, insAlns, peakChr, peakStart, peakEnd, minInsertProp):
+def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minInsertProp):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
-    insertAlns = list(insAlns)
     if len(alns) < 2:
         return None
 
@@ -171,8 +170,15 @@ def validate(*params):
             alignValidMaf = subprocess.run(["lastal", f"-P{args.thread}", "-p", "tmp/validate.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
                                         input=assemblyFasta).stdout.decode().split("\n")
 
-            alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
-                                        input=assemblyFasta).stdout.decode().split("\n")
+            if not args.lib:
+                alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
+                                            input=assemblyFasta).stdout.decode().split("\n")
+                alignInsertMaf = list(mafReader(alignInsertMaf))
+            else:
+                subprocess.check_call(f"lastdb -P{args.thread} -uRY4 lastdb/lib {args.lib}", shell=True)
+                alignInsertMaf = subprocess.run(["lastal", f"-P{args.thread}", "--split", "lastdb/lib", "-"], check=True, capture_output=True,
+                                            input=assemblyFasta).stdout.decode().split("\n")
+                alignInsertMaf = list(maf for maf in mafReader(alignInsertMaf) if maf.refName in args.names)
         except subprocess.CalledProcessError:
             print("Error in peak validation", file=sys.stderr)
             exit(1)
@@ -180,7 +186,7 @@ def validate(*params):
         if args.test:
             print("\n".join(alignValidMaf), file=sys.stdout)
 
-        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), mafReader(alignInsertMaf), peakChr, int(peakStart), int(peakEnd), args.min_insert)        
+        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_insert)        
         if vcfData is None:
             continue
 
