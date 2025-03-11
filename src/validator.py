@@ -22,10 +22,13 @@ def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
         return 0
     return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
-def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minInsertProp):
+def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minInsertProp, minInsertLen):
     alns = sorted(list(refAlns), key=attrgetter("queryStart"))
     if len(alns) < 2:
         return None
+    if not insertAlns:
+        return None
+    insertSeqNames = set(x.refName for x in insertAlns)
 
     upstreamAln = None
     downstreamAln = None
@@ -51,10 +54,13 @@ def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minIns
             insertQueryStart = min(upstreamAln.queryEnd, downstreamAln.queryEnd)
             insertQueryEnd = max(upstreamAln.queryStart, downstreamAln.queryStart)
             insertLen = 0
+            insertSeqs = {name: 0 for name in insertSeqNames}
             for insertAln in insertAlns:
-                insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
-            if insertLen > 80 and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
-                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
+                overlapLen = overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+                insertLen += overlapLen
+                insertSeqs[insertAln.refName] += overlapLen
+            if insertLen > minInsertLen and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
+                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand, max(insertSeqs, key=insertSeqs.get)
             else:
                 pairedAlnsFwd = [None, None]
                 if aln.refEnd in checkRange and downstreamAln is aln:
@@ -69,10 +75,13 @@ def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minIns
             insertQueryStart = min(upstreamAln.queryEnd, downstreamAln.queryEnd)
             insertQueryEnd = max(upstreamAln.queryStart, downstreamAln.queryStart)
             insertLen = 0
+            insertSeqs = {name: 0 for name in insertSeqNames}
             for insertAln in insertAlns:
-                insertLen += overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
-            if insertLen > 0 and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
-                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand
+                overlapLen = overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+                insertLen += overlapLen
+                insertSeqs[insertAln.refName] += overlapLen
+            if insertLen > minInsertLen and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
+                return upstreamAln.refEnd, insertQueryStart, insertQueryEnd, upstreamAln.queryStrand, max(insertSeqs, key=insertSeqs.get)
             else:
                 pairedAlnsRev = [None, None]
                 if aln.refEnd in checkRange and downstreamAln is aln:
@@ -141,12 +150,13 @@ def validate(*params):
         upstreamReads.sort(key=lambda x: len(x[1]))
         downstreamReads.sort(key=lambda x: len(x[1]))
 
-        if len(upstreamReads) == 1 or len(downstreamReads) == 1:
+        validReadNum = min(len(upstreamReads), len(downstreamReads)) * 2
+        if validReadNum == 2:
             assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
-            assemblyFasta = f">peak{count}\n{assemblyFasta}\n".encode()
+            assemblyFasta = f">peak{count}-2\n{assemblyFasta}\n".encode()
         else:
             try:
-                assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
+                assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}-{validReadNum}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
                                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
                                         stdin=assembleProc.stdout, stdout=subprocess.PIPE)
@@ -186,7 +196,7 @@ def validate(*params):
         if args.test:
             print("\n".join(alignValidMaf), file=sys.stdout)
 
-        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_insert)        
+        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_prop, args.min_len)        
         if vcfData is None:
             continue
 
@@ -203,7 +213,7 @@ def validate(*params):
 
         if args.vcf:
             assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
-            print(vcfRecord(peakChr, *vcfData, assemblySeq, count), file=resVcf, end="\n")
+            print(vcfRecord(peakChr, *vcfData, assemblySeq, count, validReadNum), file=resVcf, end="\n")
         
         count += 1
 

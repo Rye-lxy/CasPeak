@@ -54,8 +54,10 @@ def addValidGroup(parser: argparse.ArgumentParser):
     validGroup = parser.add_argument_group("parameters for validation")
     validGroup.add_argument("--sample", type=int, default=20, metavar="N",
                             help="at most N reads are selected for assembly (default: %(default)s)")
-    validGroup.add_argument("--min-insert", type=int, default=0.2, metavar="PROP",
+    validGroup.add_argument("--min-prop", type=int, default=0.2, metavar="PROP",
                             help="minimum proportion of the MEI in the insert sequence (default: %(default)s)")
+    validGroup.add_argument("--min-len", type=int, default=80, metavar="LEN",
+                            help="minimum length of the MEI in the insert sequence (default: %(default)s)")
     validGroup.add_argument("--lib", default=None, metavar="LIB", 
                             help="the library (a set of closely related sequences) used to distinguish true insertion from these related sequences")
     validGroup.add_argument("--names", action="append", metavar="NAME",
