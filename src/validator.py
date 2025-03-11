@@ -3,6 +3,7 @@
 from operator import attrgetter
 import os
 import subprocess
+import shutil
 
 from .fileReader import *
 from .vcfFormatter import *
@@ -221,4 +222,4 @@ def validate(*params):
     resBed.close()
     resFasta.close()
     if args.vcf: resVcf.close()
-    os.removedirs("tmp")
+    shutil.rmtree("tmp")
