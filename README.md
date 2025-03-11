@@ -112,8 +112,8 @@ caspeak plot --maf peak/validate.maf
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\> | Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
 | `--sample` <INT\> | Specify that at most N pairs of reads are assembled (default: 20). |
-| `--min-prop` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.2). That is, at least 20% of the insert sequence should derive from the mobile element by default. |
-| `--min-len` <INT\>| Specify the minimum length of the mobile element in the detected insert sequence (default: 80). That is, the length of mobile element in the insert sequence should be longer than 80 bp by default. |
+| `--min-insprop` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.2). That is, at least 20% of the insert sequence should derive from the mobile element by default. |
+| `--min-inslen` <INT\>| Specify the minimum length of the mobile element in the detected insert sequence (default: 80). That is, the length of mobile element in the insert sequence should be longer than 80 bp by default. |
 | `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of the single mobile element sequence specified by `--insert` option in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. |
 | `--names` <NAME\>| In the LIB file, only the sequences specified here are treated as the real mobile element for `--min-insert` calculation. Multiple sequence names can be specified like `--names A --names B --names C`. |
 | `--vcf` | Indicate an extra output in VCF format. |
@@ -178,10 +178,10 @@ caspeak plot --maf peak/validate.maf
         <td rowspan="6">See <a href="#valid">valid options</a>.</td>
     </tr>
     <tr>
-        <td><code>--min-prop</code></td>
+        <td><code>--min-insprop</code></td>
     </tr>
     <tr>
-        <td><code>--min-len</code></td>
+        <td><code>--min-inslen</code></td>
     </tr>
     <tr>
         <td><code>--lib</code></td>

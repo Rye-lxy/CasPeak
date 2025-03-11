@@ -197,7 +197,7 @@ def validate(*params):
         if args.test:
             print("\n".join(alignValidMaf), file=sys.stdout)
 
-        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_prop, args.min_len)        
+        vcfData = finalAlignmentCheck(mafReader(alignValidMaf), alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_insprop, args.min_inslen)        
         if vcfData is None:
             continue
 
