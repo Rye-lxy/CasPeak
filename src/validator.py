@@ -221,3 +221,4 @@ def validate(*params):
     resBed.close()
     resFasta.close()
     if args.vcf: resVcf.close()
+    os.removedirs("tmp")
