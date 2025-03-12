@@ -32,38 +32,45 @@ Before running caspeak, you need to prepare the following required input file in
 
 And of course, you should know the location of the Cas9 target site in the consensus sequence.
 
-Then, you can run `align`, `peak`, and `valid` sequentially like this script:
+If you don't care about the intermediate files and procedures, `exec` subcommand provides a shortcut containing all the functions for you:
+```
+cd /your/work/dir
+
+caspeak exec \
+    --read /path/to/read.fa.gz \
+    --ref /path/to/reference.fa \
+    --insert /path/to/consensus_seq.fa \
+    --target-start <NUM> \
+    --target-end <NUM> \
+    --thread <NUM>  # set the number of parallel CPUs \
+    --vcf  # addtional output in VCF format
+```
+
+Also, you can run `align`, `peak`, and `valid` sequentially like this script:
 ```
 cd /your/work/dir
 
 caspeak align \
     --read /path/to/read.fa.gz \
     --ref /path/to/reference.fa \
-    --insert /path/to/consensus_seq.fa
+    --insert /path/to/consensus_seq.fa \
+    --thread <<NUM>>
 
 caspeak peak \
     --read /path/to/read.fa.gz \
     --ref /path/to/reference.fa \
     --insert /path/to/consensus_seq.fa \
     --target-start <NUM> \
-    --target-end <NUM>
+    --target-end <NUM> \
+    --thread <NUM>
 
-caspeak valid
+caspeak valid --thread <NUM> --vcf
 ```
-If you don't care about the intermediate files and procedures, `exec` subcommand provides a shortcut containing all the functions for you:
-```
-caspeak exec \
-    --read /path/to/read.fa.gz \
-    --ref /path/to/reference.fa \
-    --insert /path/to/consensus_seq.fa \
-    --target-start <NUM> \
-    --target-end <NUM>
-```
-After running `valid` or `exec`, the final result is named as *validate.maf* in *peak* dir. Use `--vcf` option in either `valid` or `exec` if you need a VCF format output.
+After running `valid` or `exec`, the final result is named with prefix *validate* in *peak* dir.
 
 Finally, `plot` subcommand can make a dotplot for each peak according to the result MAF file:
 ```
-caspeak plot --maf peak/validate.maf
+caspeak plot --maf result/validate.maf
 ```
 ## Subcommands
 ### align
@@ -114,7 +121,7 @@ caspeak plot --maf peak/validate.maf
 | `--sample` <INT\> | Specify that at most N pairs of reads are assembled (default: 20). |
 | `--min-insprop` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.2). That is, at least 20% of the insert sequence should derive from the mobile element by default. |
 | `--min-inslen` <INT\>| Specify the minimum length of the mobile element in the detected insert sequence (default: 80). That is, the length of mobile element in the insert sequence should be longer than 80 bp by default. |
-| `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of the single mobile element sequence specified by `--insert` option in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. |
+| `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of a single mobile element sequence specified by `--insert` in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. Some lib files have been prepared in `lib` directory. |
 | `--names` <NAME\>| In the LIB file, only the sequences specified here are treated as the real mobile element for `--min-insert` calculation. Multiple sequence names can be specified like `--names A --names B --names C`. |
 | `--vcf` | Indicate an extra output in VCF format. |
 ### exec
