@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
+import multiprocessing
 import os
 import shutil
 import sys
@@ -324,8 +325,14 @@ if __name__ == "__main__":
     if hasattr(args, "lib") and args.lib is not None:
             if not hasattr(args, "names") or not args.names:
                 parser.error("--names is required when --lib is specified")
+    
 
     if hasattr(args, "func"):
+        cpu = multiprocessing.cpu_count()
+        if args.thread > cpu:
+            print(f"the number of threads is too large, set to {cpu}", file=sys.stderr)
+            args.thread = cpu
+
         args.func(args)
     else:
         parser.print_help()
