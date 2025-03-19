@@ -1,13 +1,12 @@
 import setuptools
 
-version = "1.0.1"
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+exec(open("version.py").read())
 setuptools.setup(
     name="caspeak",
-    version=version,
+    version=__version__,
     description="Finding non-reference mobile element insertions (MEIs) based on outer-Cas9 targeted Nanopore sequencing and peak detection",
     long_description=long_description,
     long_description_content_type="text/markdown",

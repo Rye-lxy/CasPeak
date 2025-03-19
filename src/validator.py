@@ -10,6 +10,9 @@ import shutil
 from .fileReader import *
 from .vcfFormatter import *
 
+from .logConfigure import getLogger
+logger = getLogger(__name__)
+
 def preAssembler(up, down, sample):
     count = 1
     while up and down and count <= sample:
@@ -95,8 +98,7 @@ def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minIns
 def peakAssemble(args, trimmedReads, peaks):
     os.makedirs("tmp", exist_ok=True)
     with open("tmp/assembly.train", "w") as train:
-        assemTrainProc = subprocess.Popen(["last-train", f"-P{args.thread}", "-Q0", "lastdb/ref", "-"],
-                                        stdin=subprocess.PIPE, stdout=train)
+        assemTrainProc = subprocess.Popen(["last-train", f"-P{args.thread}", "-Q0", "lastdb/ref", "-"], stdin=subprocess.PIPE, stdout=train)
         for name, seqInfo in trimmedReads.items():
             assemTrainProc.stdin.write(f">{name}\n{seqInfo[0]}\n".encode())
         assemTrainProc.stdin.close()
@@ -117,7 +119,7 @@ def peakAssemble(args, trimmedReads, peaks):
             downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
             if args.test:
-                print(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads", file=sys.stderr)
+                logger.info(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads")
 
             if not upstreamReads or not downstreamReads:
                 continue
@@ -128,6 +130,7 @@ def peakAssemble(args, trimmedReads, peaks):
             if validReadNum == 2:
                 assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
                 assemblyFasta = f">peak{count}-2\n{assemblyFasta}\n"
+                assemblyFasta = assemblyFasta.encode()
             else:
                 assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}-{validReadNum}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
                                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -138,11 +141,13 @@ def peakAssemble(args, trimmedReads, peaks):
                     assembleProc.stdin.write(seq.encode())
                 assembleProc.stdin.close()
 
-                assemblyFasta, _ = sedProc.communicate()
-                assemblyFasta = assemblyFasta.decode()
+                assemblyFasta, _ = sedProc.communicate() 
             
-            print(assemblyFasta, file=tmpAssembly, end="")
+            print(assemblyFasta.decode(), file=tmpAssembly, end="")
             yield peak, validReadNum, assemblyFasta
+
+    with open("tmp/validate.train", "w") as train:
+        subprocess.check_call(["last-train", f"-P{args.thread}", "-Q0", "lastdb/validate", "tmp/assembly.fasta"], stdout=train)
 
 def validateAssembly(assemblyData, args):
     peak, validReadNum, assemblyFasta = assemblyData
@@ -164,13 +169,14 @@ def validateAssembly(assemblyData, args):
         return None
 
     if args.test:
-        print("\n".join(mafData), file=sys.stdout)
+        with open("test.maf", "w") as test:
+            print("\n".join(mafData), file=test)
 
     vcfData = finalAlignmentCheck(alignValidMaf, alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_insprop, args.min_inslen)
     if vcfData is None:
         return None
     
-    return peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta, mafData, vcfData
+    return peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta.decode(), mafData, vcfData
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
@@ -186,15 +192,16 @@ def validate(*params):
         peaks = openFile(args.peak_bed)
 
     try:
+        logger.info("Start assembling...")
         assemblyList = list(peakAssemble(args, trimmedReads, peaks))
-        with open("tmp/validate.train", "w") as train:
-            subprocess.check_call(["last-train", f"-P{args.thread}", "-Q0", "lastdb/validate", "tmp/assembly.fasta"], stdout=train)
         
         if args.lib:
             subprocess.check_call(f"lastdb -P{args.thread} -uRY4 lastdb/lib {args.lib}", shell=True)
         
+        logger.info(f"Start validating with {args.thread} CPUs...")
         with multiprocessing.Pool(args.thread) as pool:
-            resultList = pool.map(partial(validateAssembly, args=args), assemblyList)
+            resultData = pool.map(partial(validateAssembly, args=args), assemblyList)
+        resultData = [x for x in resultData if x is not None]
 
         os.makedirs("result", exist_ok=True)
         resMaf = open("result/validate.maf", "w")
@@ -207,11 +214,8 @@ def validate(*params):
         
         last = None
         count = 1
-        for result in resultList:
-            if result is None:
-                continue
-            peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta, alignValidMaf, vcfData = result
-
+        logger.info("Writing results...")
+        for peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta, alignValidMaf, vcfData in resultData:
             if last is None:
                 last = (peakChr, vcfData[0])
             elif last[0] == peakChr and abs(vcfData[0] - last[1]) < 100:
@@ -221,10 +225,10 @@ def validate(*params):
             alignValidMaf = [x for x in alignValidMaf if not x.startswith("#")]
             print("\n".join(alignValidMaf), file=resMaf, end="\n")
             print(f"{peakChr}\t{peakStart}\t{peakEnd}\tpeak{count}\t{peakCov}", file=resBed, end="\n")
-            print(assemblyFasta.decode().rstrip(), file=resFasta, end="\n")
+            print(assemblyFasta.rstrip(), file=resFasta, end="\n")
 
             if args.vcf:
-                assemblySeq = next(fastaReader(assemblyFasta.decode().split("\n")))[1]
+                assemblySeq = next(fastaReader(assemblyFasta.split("\n")))[1]
                 print(vcfRecord(peakChr, *vcfData, assemblySeq, count, validReadNum), file=resVcf, end="\n")
             
             count += 1
@@ -234,6 +238,8 @@ def validate(*params):
         resFasta.close()
         if args.vcf: resVcf.close()
         shutil.rmtree("tmp")
+        logger.info("Finished.")
     except subprocess.CalledProcessError:
-        print("Error in peak validation", file=sys.stderr)
+        logger.error("Error in peak validation", exc_info=True)
+        shutil.rmtree("tmp")
         exit(1)

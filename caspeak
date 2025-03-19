@@ -1,15 +1,18 @@
 #! /usr/bin/env python3
 
 import argparse
-import multiprocessing
 import os
 import shutil
-import sys
+
+from .version import __version__
 
 from src.aligner import aligner
 from src.peakAnalyzer import peakAnalyze
 from src.validator import validate
 from src.plotter import lastDotplot
+
+from src.logConfigure import getLogger
+logger = getLogger(__name__)
 
 def addBasicArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--read", required=True, metavar="FILE", help="the read FASTA/FATSQ file (required)")
@@ -67,13 +70,13 @@ def addValidGroup(parser: argparse.ArgumentParser):
 
 def softwareCheck():
     if shutil.which("bedtools") is None:
-        print("bedtools is not found in PATH", file=sys.stderr)
+        logger.error("bedtools is not found in PATH")
         exit(1)
     if shutil.which("lamassemble") is None:
-        print("lamassemble is not found in PATH", file=sys.stderr)
+        logger.error("lamassemble is not found in PATH")
         exit(1)
     if shutil.which("lastal") is None:
-        print("last is not found in PATH", file=sys.stderr)
+        logger.error("last is not found in PATH")
         exit(1)
 
 def workdirCheck(args):   
@@ -82,38 +85,38 @@ def workdirCheck(args):
 
 def basicFileCheck(args):
     if not os.path.exists(args.read):
-        print(f"{args.read} is not found", file=sys.stderr)
+        logger.error(f"{args.read} is not found")
         exit(1)
     if not os.path.exists(args.ref):
-        print(f"{args.ref} is not found", file=sys.stderr)
+        logger.error(f"{args.ref} is not found")
         exit(1)
     if not os.path.exists(args.insert):
-        print(f"{args.insert} is not found", file=sys.stderr)
+        logger.error(f"{args.insert} is not found")
         exit(1)
 
 def peakFileCheck(args):
     if not os.path.exists(args.genome_maf):
-        print(f"{args.genome_maf} is not found", file=sys.stderr)
+        logger.error(f"{args.genome_maf} is not found")
         exit(1)
     if not os.path.exists(args.insert_maf):
-        print(f"{args.insert_maf} is not found", file=sys.stderr)
+        logger.error(f"{args.insert_maf} is not found")
         exit(1)
     if not os.path.exists(args.bedtools_genome):
-        print(f"{args.bedtools_genome} is not found", file=sys.stderr)
+        logger.error(f"{args.bedtools_genome} is not found")
         exit(1)
 
 def validFileCheck(args):
     if not os.path.exists(args.trim_read):
-        print(f"{args.trim_read} is not found", file=sys.stderr)
+        logger.error(f"{args.trim_read} is not found")
         exit(1)
     if not os.path.exists(args.peak_bed):
-        print(f"{args.peak_bed} is not found", file=sys.stderr)
+        logger.error(f"{args.peak_bed} is not found")
         exit(1)
 
 def libFileCheck(args):
     if args.lib is not None:
         if not os.path.exists(args.lib):
-            print(f"{args.lib} is not found", file=sys.stderr)
+            logger.error(f"{args.lib} is not found")
             exit(1)
 
 def execAlign(args):
@@ -184,13 +187,13 @@ def execPlot(args):
     os.makedirs(dirPath, exist_ok=True)
     prefix = os.path.basename(args.prefix)
     if not prefix:
-        print("prefix is not specified", file=sys.stderr)
+        logger.error("prefix is not specified")
         exit(1)
     lastDotplot(args)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="%(prog)s: outer-Cas9 targeted nanopore sequencing analysis")
-    parser.add_argument("-v", "--version", action="version", version="%(prog)s 1.1.0")
+    parser.add_argument("-v", "--version", action="version", version="%(prog)s " + __version__)
     subparsers = parser.add_subparsers(title="subcommands")
 
     # align subcommand
@@ -326,12 +329,13 @@ if __name__ == "__main__":
             if not hasattr(args, "names") or not args.names:
                 parser.error("--names is required when --lib is specified")
     
-
     if hasattr(args, "func"):
-        cpu = multiprocessing.cpu_count()
-        if args.thread > cpu:
-            print(f"the number of threads is too large, set to {cpu}", file=sys.stderr)
-            args.thread = cpu
+        if hasattr(args, "thread"):
+            import multiprocessing
+            cpu = multiprocessing.cpu_count()
+            if args.thread > cpu:
+                logger.warning(f"the number of threads is too large, set to {cpu}")
+                args.thread = cpu
 
         args.func(args)
     else:
