@@ -117,8 +117,8 @@ def peakAssemble(args, trimmedReads, peaks):
         upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
         downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
-        if args.test:
-            logger.info(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads")
+
+        logger.debug(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads")
 
         if not upstreamReads or not downstreamReads:
             continue

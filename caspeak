@@ -11,7 +11,7 @@ from src.peakAnalyzer import peakAnalyze
 from src.validator import validate
 from src.plotter import lastDotplot
 
-from src.logConfigure import getLogger
+from src.logConfigure import getLogger, setLogLevel
 logger = getLogger(__name__)
 
 def addBasicArgs(parser: argparse.ArgumentParser):
@@ -22,7 +22,10 @@ def addBasicArgs(parser: argparse.ArgumentParser):
 def addSharedArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--workdir", default=os.getcwd(), metavar="DIR", help="working directory (default: current directory)")
     parser.add_argument("--thread", type=int, default=1, help="number of threads (default: %(default)s)")
+
+def addLoggingArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--test", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-v", "--verbose", action="store_true", help="show progress messages & data")
 
 def addPeakArgs(parser: argparse.ArgumentParser):
     parser.add_argument("--target-start", type=int, required=True, metavar="START",
@@ -200,6 +203,7 @@ if __name__ == "__main__":
     align_parser = subparsers.add_parser("align", help="Align reads to the reference genome and consensus sequence")
     addBasicArgs(align_parser)
     addSharedArgs(align_parser)
+    addLoggingArgs(align_parser)
     align_parser.set_defaults(func=execAlign)
 
     # peak subcommand
@@ -212,6 +216,7 @@ if __name__ == "__main__":
     addfilterGroup(peak_parser)
     addreadsGroup(peak_parser)
     addpeakGroup(peak_parser)
+    addLoggingArgs(peak_parser)
     peak_parser.set_defaults(func=execPeak)
 
     # valid subcommand
@@ -220,6 +225,7 @@ if __name__ == "__main__":
     valid_parser.add_argument("--peak-bed", default="./peak/peaks.bed", metavar="FILE", help="peak BED file (default: %(default)s)")
     addSharedArgs(valid_parser)
     addValidGroup(valid_parser)
+    addLoggingArgs(valid_parser)
     valid_parser.set_defaults(func=execValid)
 
     # exec subcommand
@@ -231,14 +237,14 @@ if __name__ == "__main__":
     addreadsGroup(exec_parser)
     addpeakGroup(exec_parser)
     addValidGroup(exec_parser)
+    addLoggingArgs(exec_parser)
     exec_parser.set_defaults(func=execAllSteps)
 
     # plot subcommand
     plot_parser = subparsers.add_parser("plot", help="Plot the results from maf file, based on last-dotplot")
+    addLoggingArgs(plot_parser)
     plot_parser.add_argument("--maf", required=True, help="the maf file to plot (required)")
     plot_parser.add_argument("--prefix", default="fig/peak", help="prefix of the output figure name (default: %(default)s)")
-    plot_parser.add_argument("-v", "--verbose", action="count",
-                  help="show progress messages & data about the plot")
     plot_parser.add_argument("-x", "--width", metavar="INT", type=int, default=1000,
                   help="maximum width in pixels (default: %(default)s)")
     plot_parser.add_argument("-y", "--height", metavar="INT", type=int, default=1000,
@@ -324,6 +330,11 @@ if __name__ == "__main__":
     plot_parser.set_defaults(func=execPlot)
 
     args = parser.parse_args()
+
+    if args.test:
+        setLogLevel("DEBUG")
+    elif args.verbose:
+        setLogLevel("INFO")
 
     if hasattr(args, "lib") and args.lib is not None:
             if not hasattr(args, "names") or not args.names:

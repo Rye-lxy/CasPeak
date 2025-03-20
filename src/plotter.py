@@ -13,12 +13,13 @@
 import collections
 import functools
 from fnmatch import fnmatchcase
-import logging
 from operator import itemgetter
 import subprocess
 import itertools, optparse, os, re, sys
 
 from .fileReader import openFile
+from .logConfigure import getLogger
+logger = getLogger(__name__)
 
 # Try to make PIL/PILLOW work:
 try:
@@ -510,8 +511,8 @@ def dataFromRanges(sortedRanges, font, textDraw, labelOpt, textRot):
         out = [seqName, str(rangeBeg), str(rangeEnd)]
         if strandNum > 0:
             out.append(".+-"[strandNum])
-        logging.info("\t".join(out))
-    logging.info("")
+        logger.info("\t".join(out))
+    logger.info("")
     rangeSizes = [e - b for n, b, e, s in sortedRanges]
     labs = list(rangeLabels(sortedRanges, labelOpt, font, textDraw, textRot))
     margin = max(i[2] for i in labs)
@@ -525,7 +526,7 @@ def div_ceil(x, y):
 
 def get_bp_per_pix(rangeSizes, pixTweenRanges, maxPixels):
     '''Get the minimum bp-per-pixel that fits in the size limit.'''
-    logging.info("choosing bp per pixel...")
+    logger.info("choosing bp per pixel...")
     numOfRanges = len(rangeSizes)
     maxPixelsInRanges = maxPixels - pixTweenRanges * (numOfRanges - 1)
     if maxPixelsInRanges < numOfRanges:
@@ -902,15 +903,15 @@ def getFont(opts):
         out, err = p.communicate()
         fileNames.append(out)
     except OSError as e:
-        logging.info("fc-match error: " + str(e))
+        logger.info("fc-match error: " + str(e))
     fileNames.append("/Library/Fonts/Arial.ttf")  # for Mac
     for i in fileNames:
         try:
             font = ImageFont.truetype(i, opts.fontsize)
-            logging.info("font: " + i)
+            logger.info("font: " + i)
             return font
         except IOError as e:
-            logging.info("font load error: " + str(e))
+            logger.info("font load error: " + str(e))
     return ImageFont.load_default()
 
 def sequenceSizesAndNames(seqRanges):
@@ -921,7 +922,7 @@ def sequenceSizesAndNames(seqRanges):
 def biggestSequences(seqRanges, maxNumOfSequences):
     s = sorted(sequenceSizesAndNames(seqRanges), reverse=True)
     if len(s) > maxNumOfSequences:
-        logging.warning("too many sequences - discarding the smallest ones")
+        logger.warning("too many sequences - discarding the smallest ones")
         s = s[:maxNumOfSequences]
     return set(i[1] for i in s)
 
@@ -940,9 +941,6 @@ def readAnnots(opts, font, textDraw, sortedRanges, totalLength, fileNames):
     return annots, textSizes, margin
 
 def lastDotplot(opts):
-    logLevel = logging.INFO if opts.verbose else logging.WARNING
-    logging.basicConfig(format="%(filename)s: %(message)s", level=logLevel)
-
     font = getFont(opts)
     image_mode = 'RGB'
     forward_color = ImageColor.getcolor(opts.forwardcolor, image_mode)
@@ -953,12 +951,12 @@ def lastDotplot(opts):
     maxGap1, maxGapB1 = twoValuesFromOption(opts.max_gap1, ":")
     maxGap2, maxGapB2 = twoValuesFromOption(opts.max_gap2, ":")
 
-    # logging.info("reading alignments...")
+    # logger.info("reading alignments...")
     count = 1
     for alnData in readAlignments(opts.maf, opts, split=True):
         alignments, seqRanges1, coverDict1, seqRanges2, coverDict2 = alnData
         if not alignments: raise RuntimeError("there are no alignments")
-        logging.info("cutting...")
+        logger.info("cutting...")
         coverDict1 = dict(mergedRangesPerSeq(coverDict1))
         coverDict2 = dict(mergedRangesPerSeq(coverDict2))
         minAlignedBases = min(coveredLength(coverDict1), coveredLength(coverDict2))
@@ -978,10 +976,10 @@ def lastDotplot(opts):
         alignments = [i for i in alignments if i[1] in biggestSeqs2]
         cutRanges1 = remainingSequenceRanges(cutRanges1, alignments, 0)
 
-        logging.info("reading secondary alignments...")
+        logger.info("reading secondary alignments...")
         alnDataB = readSecondaryAlignments(opts, cutRanges1, cutRanges2)
         alignmentsB, seqRangesB1, coverDictB1, seqRangesB2, coverDictB2 = alnDataB
-        logging.info("cutting...")
+        logger.info("cutting...")
         coverDictB1 = dict(mergedRangesPerSeq(coverDictB1))
         coverDictB2 = dict(mergedRangesPerSeq(coverDictB2))
         cutRangesB1 = trimmed(seqRangesB1, coverDictB1, minAlignedBases,
@@ -989,7 +987,7 @@ def lastDotplot(opts):
         cutRangesB2 = trimmed(seqRangesB2, coverDictB2, minAlignedBases,
                             maxGapB2, 0, 0)
 
-        logging.info("sorting...")
+        logger.info("sorting...")
         sortOut = allSortedRanges(opts, alignments, alignmentsB,
                                 cutRanges1, cutRangesB1, cutRanges2, cutRangesB2)
         sortedRanges1, sortedRanges2 = sortOut
@@ -1006,7 +1004,7 @@ def lastDotplot(opts):
         i2 = dataFromRanges(sortedRanges2, font, textDraw, opts.labels2, textRot2)
         rangeSizes2, labelData2, lMargin = i2
 
-        logging.info("reading annotations...")
+        logger.info("reading annotations...")
 
         annots1 = readAnnots(opts, font, textDraw, sortedRanges1, opts.height,
                             opts.bed1)
@@ -1021,7 +1019,7 @@ def lastDotplot(opts):
         bpPerPix1 = get_bp_per_pix(rangeSizes1, opts.border_pixels, maxPixels1)
         bpPerPix2 = get_bp_per_pix(rangeSizes2, opts.border_pixels, maxPixels2)
         bpPerPix = max(bpPerPix1, bpPerPix2)
-        logging.info("bp per pixel = " + str(bpPerPix))
+        logger.info("bp per pixel = " + str(bpPerPix))
 
         p1 = pixelData(rangeSizes1, bpPerPix, opts.border_pixels, lMargin)
         rangePixBegs1, rangePixLens1, rMarginBeg = p1
@@ -1035,10 +1033,10 @@ def lastDotplot(opts):
         rangeDict2 = dict(rangesAndOriginsPerSeq(sortedRanges2, rangePixBegs2,
                                                 rangePixLens2, bpPerPix))
 
-        logging.info("width:  " + str(width))
-        logging.info("height: " + str(height))
+        logger.info("width:  " + str(width))
+        logger.info("height: " + str(height))
 
-        logging.info("processing alignments...")
+        logger.info("processing alignments...")
         allAlignments = alignments + alignmentsB
         hits = alignmentPixels(width, height, allAlignments, bpPerPix,
                             rangeDict1, rangeDict2)
@@ -1050,7 +1048,7 @@ def lastDotplot(opts):
         boxes2 = list(bedBoxes(annots2, rangeDict2, bMarginBeg, False, bpPerPix))
         boxes = sorted(itertools.chain(boxes1, boxes2))
 
-        logging.info("drawing...")
+        logger.info("drawing...")
 
         image_size = width, height
         im = Image.new(image_mode, image_size, opts.background_color)
