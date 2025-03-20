@@ -105,54 +105,53 @@ def peakAssemble(args, trimmedReads, peaks):
         assemTrainProc.communicate()
 
 
-    with open("tmp/assembly.fasta", "w") as tmpAssembly:
-        for count, peak in enumerate(peaks, start=1):
-            if not peak:
-                continue
-            peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
-                                        input=peak.encode()).stdout.decode().rstrip().split("\n")
-           
-            
-            seqNames = set(x.split("\t")[3] for x in peakBedData)
+    for count, peak in enumerate(peaks, start=1):
+        if not peak:
+            continue
+        peakBedData = subprocess.run(["bedtools", "intersect", "-wa", "-a", "peak/sorted.bed", "-b", "-"], capture_output=True, check=True,
+                                    input=peak.encode()).stdout.decode().rstrip().split("\n")
+        
+        
+        seqNames = set(x.split("\t")[3] for x in peakBedData)
 
-            upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
-            downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
+        upstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "-"]
+        downstreamReads = [(name, trimmedReads[name][0]) for name in seqNames if trimmedReads[name][1] == "+"]
 
-            if args.test:
-                logger.info(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads")
+        if args.test:
+            logger.info(f"Peak {count} has {len(upstreamReads)} upstream reads and {len(downstreamReads)} downstream reads")
 
-            if not upstreamReads or not downstreamReads:
-                continue
-            upstreamReads.sort(key=lambda x: len(x[1]))
-            downstreamReads.sort(key=lambda x: len(x[1]))
+        if not upstreamReads or not downstreamReads:
+            continue
+        upstreamReads.sort(key=lambda x: len(x[1]))
+        downstreamReads.sort(key=lambda x: len(x[1]))
 
-            validReadNum = min(len(upstreamReads), len(downstreamReads)) * 2
-            if validReadNum == 2:
-                assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
-                assemblyFasta = f">peak{count}-2\n{assemblyFasta}\n"
-                assemblyFasta = assemblyFasta.encode()
-            else:
-                assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}-{validReadNum}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
-                                                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
-                                        stdin=assembleProc.stdout, stdout=subprocess.PIPE)
-                assembleProc.stdout.close()
-                for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
-                    assembleProc.stdin.write(seq.encode())
-                assembleProc.stdin.close()
+        validReadNum = min(len(upstreamReads), len(downstreamReads)) * 2
+        if validReadNum == 2:
+            assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
+            assemblyFasta = f">peak{count}-2\n{assemblyFasta}\n"
+            assemblyFasta = assemblyFasta.encode()
+        else:
+            assembleProc = subprocess.Popen(["lamassemble", "-n", f"peak{count}-{validReadNum}", "-P", str(args.thread), "tmp/assembly.train", "-"], 
+                                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            sedProc = subprocess.Popen(["sed", "/>/!y/acgt/ACGT/"], 
+                                    stdin=assembleProc.stdout, stdout=subprocess.PIPE)
+            assembleProc.stdout.close()
+            for seq in preAssembler(upstreamReads, downstreamReads, args.sample):
+                assembleProc.stdin.write(seq.encode())
+            assembleProc.stdin.close()
 
-                assemblyFasta, _ = sedProc.communicate() 
-            
-            print(assemblyFasta.decode(), file=tmpAssembly, end="")
-            yield peak, validReadNum, assemblyFasta
-
-    with open("tmp/validate.train", "w") as train:
-        subprocess.check_call(["last-train", f"-P{args.thread}", "-Q0", "lastdb/validate", "tmp/assembly.fasta"], stdout=train)
+            assemblyFasta, _ = sedProc.communicate() 
+        
+        yield peak, validReadNum, assemblyFasta
 
 def validateAssembly(assemblyData, args):
     peak, validReadNum, assemblyFasta = assemblyData
     peakChr, peakStart, peakEnd, _, peakCov = peak.split()
-    mafData = subprocess.run(["lastal", "-p", "tmp/validate.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
+    with open(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "w") as train:
+        trainReturnCode = subprocess.run(["last-train", "-Q0", "lastdb/validate", "-"], stdout=train, input=assemblyFasta).returncode
+    if trainReturnCode != 0:
+        return None
+    mafData = subprocess.run(["lastal", "-p", f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
                                 input=assemblyFasta).stdout.decode().split("\n")
     alignValidMaf = list(mafReader(mafData))
 

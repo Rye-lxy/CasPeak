@@ -4,7 +4,7 @@ import argparse
 import os
 import shutil
 
-from .version import __version__
+from src.version import __version__
 
 from src.aligner import aligner
 from src.peakAnalyzer import peakAnalyze

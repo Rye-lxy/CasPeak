@@ -3,7 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-exec(open("version.py").read())
+exec(open("src/version.py").read())
 setuptools.setup(
     name="caspeak",
     version=__version__,
