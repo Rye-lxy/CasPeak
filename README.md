@@ -83,6 +83,7 @@ caspeak plot --maf result/validate.maf
 | `--insert` <FILE\> | Consensus sequence of the mobile element in FASTA or FASTQ format (**required**). |
 | `--thread` <INT\> | Specify the threads running in parallel (default: 1). |
 | `--workdir` <DIR\>| Specify the working directory for caspeak output (default: current directory). It is recommended that all the commands should be executed in the same directory. |
+| `-v`, `--verbose` | Print more progress messages and data to stdin. |
 
 ### peak
 `caspeak peak` can filter the reads by alignments to both reference genome and insert consensus sequence, and calculate the coverage peaks. Simultaneously, it prepares several files for `caspeak valid` to avoid duplicate parameters.
@@ -109,6 +110,7 @@ caspeak plot --maf result/validate.maf
 | `--padding` <INT\> | Specify the padding size of the target region (default: 20). This option enables the reads that are not exactly targeted. |
 ||**Parameters for peak detection**|
 | `--min-cov` <INT\> | Specify the minimum coverage to be considered in peak detection (default: 2). |
+| `-v`, `--verbose` | Print more progress messages and data to stdin. |
 ### valid
 
 `caspeak valid` validates peaks listed in BED format. For each peak, `caspeak valid` collects the reads involved, assembles them by [lamassemble](https://gitlab.com/mcfrith/lamassemble), and re-aligns the assembly sequence to validate whether the peak indicates a real non-reference insertion. And it generates the final result to *result* dir only in MAF format if `--vcf` is ignored.
@@ -124,6 +126,7 @@ caspeak plot --maf result/validate.maf
 | `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of a single mobile element sequence specified by `--insert` in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. Some lib files have been prepared in `lib` directory. |
 | `--names` <NAME\>| In the LIB file, only the sequences specified here are treated as the real mobile element for `--min-insert` calculation. Multiple sequence names can be specified like `--names A --names B --names C`. |
 | `--vcf` | Indicate an extra output in VCF format. |
+| `-v`, `--verbose` | Print more progress messages and data to stdin. |
 ### exec
 `caspeak exec` actually provided a shortcut and wrapper for `caspeak align`, `caspeak peak` and `caspeak valid`. It improves speed by skipping several I/O operations.
 <table>
@@ -198,6 +201,10 @@ caspeak plot --maf result/validate.maf
     </tr>
     <tr>
         <td><code>--vcf</code></td>
+    </tr>
+    <tr>
+        <td><code>-v</code>, <code>--verbose</code></td>
+        <td>Print more progress messages and data to stdin.</td>
     </tr>
 </table>
 
