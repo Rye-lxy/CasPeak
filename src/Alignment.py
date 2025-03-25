@@ -48,3 +48,9 @@ class Alignment:
         else:
             self.queryEnd = self.queryStart + toLength
             self.refStart = self.refEnd - toLength
+
+    @staticmethod
+    def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
+        if intervalStart1 >= intervalEnd2 or intervalEnd1 <= intervalStart2:
+            return 0
+        return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)

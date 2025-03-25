@@ -7,9 +7,9 @@ import os
 import subprocess
 import shutil
 
+from .Alignment import Alignment
 from .fileReader import *
 from .vcfFormatter import *
-
 from .logConfigure import getLogger
 logger = getLogger(__name__)
 
@@ -22,11 +22,6 @@ def preAssembler(up, down, sample):
         seq = upSeq[1] + downSeq[1]
         yield f"{title}\n{seq}\n"
         count += 1
-
-def overlapLength(intervalStart1, intervalEnd1, intervalStart2, intervalEnd2):
-    if intervalStart1 >= intervalEnd2 or intervalEnd1 <= intervalStart2:
-        return 0
-    return min(intervalEnd1, intervalEnd2) - max(intervalStart1, intervalStart2)
 
 def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minInsertProp, minInsertLen):
     alns = sorted(refAlns, key=attrgetter("queryStart"))
@@ -60,7 +55,7 @@ def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minIns
             insertLen = 0
             insertSeqs = {name: 0 for name in insertSeqNames}
             for insertAln in insertAlns:
-                overlapLen = overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+                overlapLen = Alignment.overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
                 insertLen += overlapLen
                 insertSeqs[insertAln.refName] += overlapLen
             if insertLen > minInsertLen and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
@@ -81,7 +76,7 @@ def finalAlignmentCheck(refAlns, insertAlns, peakChr, peakStart, peakEnd, minIns
             insertLen = 0
             insertSeqs = {name: 0 for name in insertSeqNames}
             for insertAln in insertAlns:
-                overlapLen = overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
+                overlapLen = Alignment.overlapLength(insertQueryStart, insertQueryEnd, insertAln.queryStart, insertAln.queryEnd)
                 insertLen += overlapLen
                 insertSeqs[insertAln.refName] += overlapLen
             if insertLen > minInsertLen and insertLen / (insertQueryEnd - insertQueryStart) >= minInsertProp:
