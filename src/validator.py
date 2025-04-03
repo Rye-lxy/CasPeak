@@ -142,9 +142,14 @@ def peakAssemble(args, trimmedReads, peaks):
 def validateAssembly(assemblyData, args):
     peak, validReadNum, assemblyFasta = assemblyData
     peakChr, peakStart, peakEnd, _, peakCov = peak.split()
-    with open(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "w") as train:
-        trainReturnCode = subprocess.run(["last-train", "-Q0", "lastdb/validate", "-"], stdout=train, input=assemblyFasta).returncode
-    if trainReturnCode != 0:
+    try:
+        with open(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "w") as train:
+            trainReturnCode = subprocess.run(["last-train", "-Q0", "lastdb/validate", "-"], stdout=train, input=assemblyFasta, timeout=72000).returncode
+        if trainReturnCode != 0:
+            return None
+    except subprocess.TimeoutExpired:
+        logger.warning(f"last-train timeout expired in peak {peakChr}:{peakStart}-{peakEnd}")
+        os.remove(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train")
         return None
     mafData = subprocess.run(["lastal", "-p", f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
                                 input=assemblyFasta).stdout.decode().split("\n")
