@@ -144,7 +144,7 @@ def validateAssembly(assemblyData, args):
     peakChr, peakStart, peakEnd, _, peakCov = peak.split()
     try:
         with open(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "w") as train:
-            trainReturnCode = subprocess.run(["last-train", "-Q0", "lastdb/validate", "-"], stdout=train, input=assemblyFasta, timeout=72000).returncode
+            trainReturnCode = subprocess.run(["last-train", "-Q0", "-C2", "lastdb/validate", "-"], stdout=train, input=assemblyFasta, timeout=36000).returncode
         if trainReturnCode != 0:
             return None
     except subprocess.TimeoutExpired:
