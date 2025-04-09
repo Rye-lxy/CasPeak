@@ -68,7 +68,9 @@ def addValidGroup(parser: argparse.ArgumentParser):
     validGroup.add_argument("--lib", default=None, metavar="LIB", 
                             help="the library (a set of closely related sequences) used to distinguish true insertion from these related sequences")
     validGroup.add_argument("--names", action="append", metavar="NAME",
-                            help="names of the insertion sequence in the library (only required if lib is specified)")
+                            help="names of the insertion sequences in the library")
+    validGroup.add_argument("--names-re", metavar="REGEX",
+                            help="regular expression to match the name of the insertion sequences")
     validGroup.add_argument("--vcf", action="store_true", help="output the validated result in VCF format")
 
 def softwareCheck():
@@ -337,8 +339,8 @@ if __name__ == "__main__":
         setLogLevel("INFO")
 
     if hasattr(args, "lib") and args.lib is not None:
-            if not hasattr(args, "names") or not args.names:
-                parser.error("--names is required when --lib is specified")
+            if (not hasattr(args, "names") or not args.names) and not hasattr(args, "names_re"):
+                parser.error("--names or --name-re is required when --lib is specified")
     
     if hasattr(args, "func"):
         if hasattr(args, "thread"):

@@ -124,7 +124,8 @@ caspeak plot --maf result/validate.maf
 | `--min-insprop` <INT\>| Specify the minimum proportion of the mobile element in the detected insert sequence (default: 0.2). That is, at least 20% of the insert sequence should derive from the mobile element by default. |
 | `--min-inslen` <INT\>| Specify the minimum length of the mobile element in the detected insert sequence (default: 80). That is, the length of mobile element in the insert sequence should be longer than 80 bp by default. |
 | `--lib` <LIB\> | Use a sequence set of mobile element ancestral lineage (FASTA/FASTAQ format) for validation, instead of a single mobile element sequence specified by `--insert` in previous steps. For example, a set of sequences containing L1HS, L1PA2, L1PA3, ..., L1MA1, ... is suitable for L1HS detection with `--names L1HS`. Some lib files have been prepared in `lib` directory. |
-| `--names` <NAME\>| In the LIB file, only the sequences specified here are treated as the real mobile element for `--min-insert` calculation. Multiple sequence names can be specified like `--names A --names B --names C`. |
+| `--names` <NAME\>| In the LIB file, only the sequences specified in this option are treated as real mobile element for `--min-insert` calculation. Multiple sequence names can be assigned like `--names A --names B --names C`. |
+| `--names-re` <REGEXP\> | Treat all the sequences in `lib` file with name matching [REGEXP](https://en.wikipedia.org/wiki/Regular_expression) as real mobile element. Either `--names` or `--names-re` should be set if `--lib` option is specified. |
 | `--vcf` | Indicate an extra output in VCF format. |
 | `-v`, `--verbose` | Print more progress messages and data to stdin. |
 ### exec
@@ -185,7 +186,7 @@ caspeak plot --maf result/validate.maf
     </tr>
     <tr>
         <td><code>--sample</code></td>
-        <td rowspan="6">See <a href="#valid">valid options</a>.</td>
+        <td rowspan="7">See <a href="#valid">valid options</a>.</td>
     </tr>
     <tr>
         <td><code>--min-insprop</code></td>
@@ -198,6 +199,9 @@ caspeak plot --maf result/validate.maf
     </tr>
     <tr>
         <td><code>--names</code></td>
+    </tr>
+    <tr>
+        <td><code>--names-re</code></td>
     </tr>
     <tr>
         <td><code>--vcf</code></td>

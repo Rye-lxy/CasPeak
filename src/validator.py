@@ -4,6 +4,7 @@ from operator import attrgetter
 from functools import partial
 import multiprocessing
 import os
+import re
 import subprocess
 import shutil
 
@@ -162,7 +163,7 @@ def validateAssembly(assemblyData, args):
     else:
         alignInsertMaf = subprocess.run(["lastal", "--split", "lastdb/lib", "-"], check=True, capture_output=True,
                                     input=assemblyFasta).stdout.decode().split("\n")
-        alignInsertMaf = list(maf for maf in mafReader(alignInsertMaf) if maf.refName in args.names)
+        alignInsertMaf = list(maf for maf in mafReader(alignInsertMaf) if maf.refName in args.names or args.names_re.fullmatch(maf.refName))
 
     if not alignValidMaf or not alignInsertMaf:
         return None
@@ -179,8 +180,8 @@ def validateAssembly(assemblyData, args):
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
-    # 1. args: trim_read, peak_bed, thread, sample, vcf
-    # 2. args: thread, sample, vcf
+    # 1. args: trim_read, peak_bed, thread, sample, lib, names/names-re, vcf
+    # 2. args: thread, sample, lib, names/names-re, vcf
     args = params[0]
     if len(params) == 3:
         trimmedReads, peaks = params[1], params[2]
@@ -189,6 +190,14 @@ def validate(*params):
         trimmedReads = dict(fastaReader(openFile(args.trim_read)))
         trimmedReads = {name[:-1]: (trimmedReads[name], name[-1]) for name in trimmedReads}
         peaks = openFile(args.peak_bed)
+    
+    if args.lib is not None:
+        if hasattr(args, "names_re"):
+            args.names_re = re.compile(args.names_re)
+        else:
+            args.names_re = re.compile("a^")
+        if not hasattr(args, "names"):
+            args.names = set()
 
     try:
         logger.info("Start assembling...")
