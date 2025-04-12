@@ -192,11 +192,11 @@ def validate(*params):
         peaks = openFile(args.peak_bed)
     
     if args.lib is not None:
-        if hasattr(args, "names_re"):
+        if args.names_re:
             args.names_re = re.compile(args.names_re)
         else:
             args.names_re = re.compile("a^")
-        if not hasattr(args, "names"):
+        if not args.names:
             args.names = set()
 
     try:

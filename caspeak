@@ -65,7 +65,7 @@ def addValidGroup(parser: argparse.ArgumentParser):
                             help="minimum proportion of the MEI in the insert sequence (default: %(default)s)")
     validGroup.add_argument("--min-inslen", type=int, default=80, metavar="LEN",
                             help="minimum length of the MEI in the insert sequence (default: %(default)s)")
-    validGroup.add_argument("--lib", default=None, metavar="LIB", 
+    validGroup.add_argument("--lib", metavar="LIB", 
                             help="the library (a set of closely related sequences) used to distinguish true insertion from these related sequences")
     validGroup.add_argument("--names", action="append", metavar="NAME",
                             help="names of the insertion sequences in the library")
@@ -339,7 +339,7 @@ if __name__ == "__main__":
         setLogLevel("INFO")
 
     if hasattr(args, "lib") and args.lib is not None:
-            if (not hasattr(args, "names") or not args.names) and not hasattr(args, "names_re"):
+            if not args.names and not args.names_re:
                 parser.error("--names or --name-re is required when --lib is specified")
     
     if hasattr(args, "func"):
