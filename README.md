@@ -127,7 +127,7 @@ caspeak plot --maf result/validate.maf
 | `--names` <NAME\>| In the LIB file, only the sequences specified in this option are treated as real mobile element for `--min-insert` calculation. Multiple sequence names can be assigned like `--names A --names B --names C`. |
 | `--names-re` <REGEXP\> | Treat all the sequences in `lib` file with name matching [REGEXP](https://en.wikipedia.org/wiki/Regular_expression) as real mobile element. Either `--names` or `--names-re` should be set if `--lib` option is specified. |
 | `--vcf` | Indicate an extra output in VCF format. |
-| `-v`, `--verbose` | Print more progress messages and data to stdin. |
+| `-v`, `--verbose` | Print more progress messages and data to stdout. |
 ### exec
 `caspeak exec` actually provided a shortcut and wrapper for `caspeak align`, `caspeak peak` and `caspeak valid`. It improves speed by skipping several I/O operations.
 <table>
