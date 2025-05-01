@@ -333,16 +333,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.test:
-        setLogLevel("DEBUG")
-    elif args.verbose:
-        setLogLevel("INFO")
-
-    if hasattr(args, "lib") and args.lib is not None:
-            if not args.names and not args.names_re:
-                parser.error("--names or --name-re is required when --lib is specified")
-    
     if hasattr(args, "func"):
+        if args.test:
+            setLogLevel("DEBUG")
+        elif args.verbose:
+            setLogLevel("INFO")
+
+        if hasattr(args, "lib") and args.lib is not None:
+                if not args.names and not args.names_re:
+                    parser.error("--names or --name-re is required when --lib is specified")
         if hasattr(args, "thread"):
             import multiprocessing
             cpu = multiprocessing.cpu_count()
