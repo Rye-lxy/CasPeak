@@ -49,9 +49,8 @@ def peakAnalyze(args):
         genomeCov = subprocess.run(["bedtools", "genomecov", "-bga", "-i", "-", "-g", args.bedtools_genome], capture_output=True, check=True,
                                 input=sortedBed).stdout.decode().rstrip()
 
-        bedFile = open("peak/sorted.bed", "w")
-        print(sortedBed.decode().rstrip(), file=bedFile)
-        bedFile.close()
+        with open("peak/sorted.bed", "w") as bedFile:
+            print(sortedBed.decode().rstrip(), file=bedFile)
 
         # find peaks and store in bed format for bedtools
         peakBed = [f"{name}\t{start}\t{end}\t{name}:{start}-{end}\t{cov}" 

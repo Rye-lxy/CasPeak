@@ -189,7 +189,8 @@ def execPlot(args):
     args.background_color = "white"
     args.label_space = 5
     dirPath = os.path.dirname(args.prefix)
-    os.makedirs(dirPath, exist_ok=True)
+    if dirPath:
+        os.makedirs(dirPath, exist_ok=True)
     prefix = os.path.basename(args.prefix)
     if not prefix:
         logger.error("prefix is not specified")
