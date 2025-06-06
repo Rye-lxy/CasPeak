@@ -28,7 +28,7 @@ def genomeAlignmentFilter(genomeMafReader, minReadLen, maxProp, minProp, exogeno
         if length < minReadLen:
             continue
         
-        joinedAlns = joinAll(alns, 200, 1000)
+        joinedAlns = joinAll(alns, 1000, 1000)
         joinedAlns = [aln for aln in joinedAlns if aln.refName in genomeList]
         if not exogenous and len(joinedAlns) < 2:
             continue
