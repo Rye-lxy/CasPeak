@@ -65,6 +65,8 @@ def addValidGroup(parser: argparse.ArgumentParser):
                             help="minimum proportion of the MEI in the insert sequence (default: %(default)s)")
     validGroup.add_argument("--min-inslen", type=int, default=80, metavar="LEN",
                             help="minimum length of the MEI in the insert sequence (default: %(default)s)")
+    validGroup.add_argument("--min-asb-seq", type=int, default=1, metavar="NUM",
+                            help="minimum number of assembled sequences (default: %(default)s)")
     validGroup.add_argument("--lib", metavar="LIB", 
                             help="the library (a set of closely related sequences) used to distinguish true insertion from these related sequences")
     validGroup.add_argument("--names", action="append", metavar="NAME",

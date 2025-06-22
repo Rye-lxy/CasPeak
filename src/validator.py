@@ -121,7 +121,11 @@ def peakAssemble(args, trimmedReads, peaks):
         upstreamReads.sort(key=lambda x: len(x[1]))
         downstreamReads.sort(key=lambda x: len(x[1]))
 
-        validReadNum = min(len(upstreamReads), len(downstreamReads)) * 2
+        validReadNum = min(len(upstreamReads), len(downstreamReads))
+        if validReadNum < args.min_asb_seq:
+            continue
+        validReadNum *= 2
+
         if validReadNum == 2:
             assemblyFasta = next(preAssembler(upstreamReads, downstreamReads, 1)).split("\n")[1]
             assemblyFasta = f">peak{count}-2\n{assemblyFasta}\n"
