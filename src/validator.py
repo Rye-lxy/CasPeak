@@ -156,31 +156,33 @@ def validateAssembly(assemblyData, args):
         logger.warning(f"last-train timeout expired in peak {peakChr}:{peakStart}-{peakEnd}")
         os.remove(f"tmp/{peakChr}_{peakStart}_{peakEnd}.train")
         return None
-    mafData = subprocess.run(["lastal", "-p", f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
+    validMafData = subprocess.run(["lastal", "-p", f"tmp/{peakChr}_{peakStart}_{peakEnd}.train", "--split", "lastdb/validate", "-"], check=True, capture_output=True,
                                 input=assemblyFasta).stdout.decode().split("\n")
-    alignValidMaf = list(mafReader(mafData))
+    alignValidMaf = list(mafReader(validMafData))
 
     if not args.lib:
-        alignInsertMaf = subprocess.run(["lastal", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
+        insMafData = subprocess.run(["lastal", "--split", "lastdb/insert", "-"], check=True, capture_output=True,
                                     input=assemblyFasta).stdout.decode().split("\n")
-        alignInsertMaf = list(mafReader(alignInsertMaf))
+        alignInsertMaf = list(mafReader(insMafData))
     else:
-        alignInsertMaf = subprocess.run(["lastal", "--split", "lastdb/lib", "-"], check=True, capture_output=True,
+        insMafData = subprocess.run(["lastal", "--split", "lastdb/lib", "-"], check=True, capture_output=True,
                                     input=assemblyFasta).stdout.decode().split("\n")
-        alignInsertMaf = list(maf for maf in mafReader(alignInsertMaf) if maf.refName in args.names or args.names_re.fullmatch(maf.refName))
+        alignInsertMaf = list(maf for maf in mafReader(insMafData) if maf.refName in args.names or args.names_re.fullmatch(maf.refName))
 
     if not alignValidMaf or not alignInsertMaf:
         return None
 
     if args.test:
-        with open("test.maf", "w") as test:
-            print("\n".join(mafData), file=test)
+        with open("test.valid.maf", "w") as test:
+            print("\n".join(validMafData), file=test)
+        with open("test.insert.maf", "w") as test:
+            print("\n".join(insMafData), file=test)
 
     vcfData = finalAlignmentCheck(alignValidMaf, alignInsertMaf, peakChr, int(peakStart), int(peakEnd), args.min_insprop, args.min_inslen)
     if vcfData is None:
         return None
     
-    return peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta.decode(), mafData, vcfData
+    return peakChr, peakStart, peakEnd, peakCov, validReadNum, assemblyFasta.decode(), validMafData, vcfData
 
 def validate(*params):
     # params: only 1.(args) or 2.(args, trimmedReads, peaks)
