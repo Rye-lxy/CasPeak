@@ -52,8 +52,10 @@ caspeak exec \
     --target-start <NUM> \
     --target-end <NUM> \
     --thread <NUM>  # set the number of parallel CPUs \
-    --vcf  # addtional output in VCF format
+    --vcf  # addtional output in VCF format \
+    --bedtools-genome
 ```
+Regarding the option `--bedtools-genome`, caspeak can locate the [`genome` folder](https://github.com/arq5x/bedtools2/tree/master/genomes) if it is downloaded with bedtools, and pick `human.hg38.genome` as the default. But in some other conditions, like installed via conda, you may need to manually specify a file containing all the chromosome names and lengths.
 
 Also, you can run `align`, `peak`, and `valid` sequentially like this script:
 ```

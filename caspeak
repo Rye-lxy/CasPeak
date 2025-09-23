@@ -83,7 +83,7 @@ def softwareCheck():
         logger.error("lamassemble is not found in PATH")
         exit(1)
     if shutil.which("lastal") is None:
-        logger.error("last is not found in PATH")
+        logger.error("LAST is not found in PATH")
         exit(1)
 
 def workdirCheck(args):   
@@ -92,38 +92,38 @@ def workdirCheck(args):
 
 def basicFileCheck(args):
     if not os.path.exists(args.read):
-        logger.error(f"{args.read} is not found")
+        logger.error(f"Input {args.read} is not found")
         exit(1)
     if not os.path.exists(args.ref):
-        logger.error(f"{args.ref} is not found")
+        logger.error(f"Reference genome {args.ref} is not found")
         exit(1)
     if not os.path.exists(args.insert):
-        logger.error(f"{args.insert} is not found")
+        logger.error(f"Consensus sequence {args.insert} is not found")
         exit(1)
 
 def peakFileCheck(args):
     if not os.path.exists(args.genome_maf):
-        logger.error(f"{args.genome_maf} is not found")
+        logger.error(f"Alignment {args.genome_maf} is not found")
         exit(1)
     if not os.path.exists(args.insert_maf):
-        logger.error(f"{args.insert_maf} is not found")
+        logger.error(f"Alignment {args.insert_maf} is not found")
         exit(1)
     if not os.path.exists(args.bedtools_genome):
-        logger.error(f"{args.bedtools_genome} is not found")
+        logger.error(f"The genome file that bedtools required:\n {args.bedtools_genome} is not found")
         exit(1)
 
 def validFileCheck(args):
     if not os.path.exists(args.trim_read):
-        logger.error(f"{args.trim_read} is not found")
+        logger.error(f"Trimmed reads file: {args.trim_read} is not found")
         exit(1)
     if not os.path.exists(args.peak_bed):
-        logger.error(f"{args.peak_bed} is not found")
+        logger.error(f"Peak file: {args.peak_bed} is not found")
         exit(1)
 
 def libFileCheck(args):
     if args.lib is not None:
         if not os.path.exists(args.lib):
-            logger.error(f"{args.lib} is not found")
+            logger.error(f"Library {args.lib} is not found")
             exit(1)
 
 def execAlign(args):
